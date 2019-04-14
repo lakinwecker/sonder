@@ -7,9 +7,11 @@ from dotenv import load_dotenv
 
 
 @click.command()
-@click.option('--league', help='team4545, lonewolf')
-@click.option('--season', help='number for team4545, number with or without u1800 for lonewolf')
+@click.option('--league', required=True, help='team4545, lonewolf')
+@click.option('--season', required=True, help='number for team4545, number with or without u1800 for lonewolf')
 
+def callgameList(league, season):
+    print(gameList(league, season))
 
 def gameList(league, season):
     """build list of gameIDs from the round(s) by scraping lichess4545.com website"""
@@ -26,11 +28,9 @@ def gameList(league, season):
         response = connection.read().decode('utf-8')
         links = re.findall(r'en\.lichess\.org\/([\w]+)', response)
         gameIDs.extend(links)
-    print("done1")
     return gameIDs
 
 if __name__ == '__main__':
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
-    gameList()
-    print("done2")
+    callgameList()
