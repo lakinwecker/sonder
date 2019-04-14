@@ -12,11 +12,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ('SECRET_KEY', 'dr#-g98prpuk8&mbz+m02o&!&ne6pkhf^-6o^15f&k8t$dzn6s')
-DEBUG = os.environ('DEBUG', False)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dr#-g98prpuk8&mbz+m02o&!&ne6pkhf^-6o^15f&k8t$dzn6s')
+DEBUG = os.environ.get('DEBUG', False)
 
 ALLOWED_HOSTS = [
-    os.environ('ALLOWED_HOSTS', 'localhost:8000'),
+    os.environ.get('ALLOWED_HOSTS', 'localhost'),
 ]
 
 
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sonder.analysis',
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sonder.wsgi.application'
 
+DATABASES = {}
 DATABASES['default'] = dj_database_url.config(
     default='postgres://sonder:Eemoh8ait6taequ3ph@localhost:5432/sonder',
     conn_max_age=600
@@ -80,3 +82,4 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', None)
