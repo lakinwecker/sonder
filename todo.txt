@@ -7,6 +7,7 @@
 (A) Script to ingest data from irwin. +irwin
 (A) Script to listen to lichess for new players to process +simple +lila
 (A) Script to scrape list of games with season and league from lichess4545.com +simple +heltour
+(A) Need to model the tags we want to use appropriately +db
 (A) We need the irwin report data modeled +db +irwin
 (B) Graph / Exploratory data +CR
 (B) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin

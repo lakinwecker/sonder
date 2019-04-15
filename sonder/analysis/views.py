@@ -1,6 +1,7 @@
 
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from . import json
@@ -13,6 +14,7 @@ from .models import (
     IrwinReportRequiredGame
 )
 
+@csrf_exempt
 @require_POST
 @json.api(FishnetRequest, FishnetJob)
 def acquire(request, fishnet_request):

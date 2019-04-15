@@ -18,6 +18,10 @@ class AnalysisSource(models.Model):
     def __str__(self):
         return self.name
 
+class Tag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+
 class Player(models.Model):
     username = models.CharField(max_length=255, unique=True)
     def __str__(self):
@@ -37,18 +41,29 @@ class Game(models.Model):
         on_delete=models.SET_NULL,
         related_name='games_as_black',
     )
-    time_control = models.CharField(max_length=8)
-    is_analyzed = models.BooleanField(default=False)
+    time_control = models.CharField(max_length=8, default='')
+
+    # Storing the source PGN in case we want more information from
+    # it later.
+    source_pgn = models.TextField(default='')
 
     # list of uci moves
-    moves = JSONField()
+    moves = JSONField(null=True)
     # list of integers representing the emts from lila
-    moves_emt = JSONField()
+    moves_emt = JSONField(null=True)
     # list of booleans representing the blur indication from lila
-    moves_blur = JSONField()
+    moves_blur = JSONField(null=True)
     # list of ints representing the number of times masters have
     # played this move
-    moves_masterdb_matches = JSONField()
+    moves_masterdb_matches = JSONField(null=True)
+
+    def set_pgn(self, pgn):
+        self.source_pgn = pgn
+        # TODO: parse moves properly
+
+class GameTag(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
 colors = (('w', 'White'), ('b', 'Black'))
@@ -57,11 +72,12 @@ class GameAnalysis(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     source = models.ForeignKey(AnalysisSource, on_delete=models.CASCADE)
     stockfish_version = models.CharField(max_length=8)
+    is_completed = models.BooleanField(default=False)
 
     # A list of pvs, where each pv is 5 in length
     # and each pv is of the form:
     # {
-    #   "pv": "e2e4 e7e5 g1f3 g8f6", # principle variation.
+    #   "pv": "e2e4 e7e5 g1f3 g8f6", # principle variation if provided
     #   "seldepth": 24, # TODO: Figure what what this is
     #   "tbhits": 0, # tablebase hits?
     #   "depth": 18, # depth reached
