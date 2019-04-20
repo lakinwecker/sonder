@@ -35,9 +35,13 @@ select * from player;
 
 def import_cr_database(database, analysis_source, fishnet_version):
     with tempfile.TemporaryDirectory() as base_dir:
+        # Export the tables that we need
         lines = cr_export_sql_template.format(base_dir=base_dir)
         sqlite3 = subprocess.Popen(["sqlite3", database], stdin=subprocess.PIPE)
         sqlite3.communicate(bytes(lines, "utf-8"))
+
+        # Load the player table and insert all players and store
+        # a mapping of id to player
         players_by_old_id = {}
         with open(f"{base_dir}/player.csv", "r") as player_fd:
             for line in player_fd.readlines():
@@ -60,6 +64,8 @@ def import_cr_database(database, analysis_source, fishnet_version):
                 game, _ = Game.objects.get_or_create(lichess_id=game_id.strip())
                 players = game_players.get(game_id)
                 if players:
+                    assert players['w']
+                    assert players['b']
                     game.white_player = players['w']
                     game.black_player = players['b']
                     game.save()

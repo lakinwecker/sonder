@@ -2,6 +2,8 @@ from django.db import models, transaction
 from django.contrib.postgres.fields import JSONField
 from django.utils.crypto import get_random_string
 
+from sonder.utils import pgn_to_uci
+
 def create_api_token():
     return get_random_string(length=12)
 
@@ -59,7 +61,7 @@ class Game(models.Model):
 
     def set_pgn(self, pgn):
         self.source_pgn = pgn
-        # TODO: parse moves properly
+        self.moves = pgn_to_uci(self.source_pgn)
 
 class GameTag(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
