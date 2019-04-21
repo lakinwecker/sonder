@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 @click.command()
 @click.option('--pgn', help='pgn to be converted to UCI moves')
 def callpgn_to_uci(pgn):
-    print(" ".join(pgn_to_uci(pgn))
+    print(" ".join(pgn_to_uci(open(pgn, "r").read()))
 
 if __name__ == '__main__':
     sys.path.insert(0, "..")
