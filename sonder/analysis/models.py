@@ -27,7 +27,7 @@ class Tag(models.Model):
 class Player(models.Model):
     username = models.CharField(max_length=255, unique=True)
     def __str__(self):
-        return self.usernmae
+        return self.username
 
 class Game(models.Model):
     lichess_id = models.CharField(max_length=32, unique=True)

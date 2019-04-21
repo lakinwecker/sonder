@@ -17,8 +17,8 @@ def callpgn_to_uci(pgn):
     print(pgn_to_uci(pgn))
 
 def pgn_to_uci(pgn):
-    pgn = io.StringIO(pgn)
-    game = chess.pgn.read_game(pgn)
+    pgn_in = open(pgn)
+    game = chess.pgn.read_game(pgn_in)
     moves = []
     for move in game.mainline_moves():
         moves.append(move.uci())
