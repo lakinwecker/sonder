@@ -21,7 +21,6 @@ def import_cr_games(database, analysis_source, stockfish_version):
     import_cr_database(database, analysis_source, stockfish_version)
 
 
-
 if __name__ == '__main__':
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
