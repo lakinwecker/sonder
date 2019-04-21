@@ -76,8 +76,12 @@ class GameAnalysis(models.Model):
     stockfish_version = models.CharField(max_length=8)
     is_completed = models.BooleanField(default=False)
 
-    # A list of pvs, where each pv is 5 in length
-    # and each pv is of the form:
+    # A list of position analysis where each position
+    # has a list of PVs.
+    # The position will be:
+    # { 'move': 1, pvs: [] }
+    # pvs may be empty if no analysis was done.
+    # Each pv is of the form:
     # {
     #   "pv": "e2e4 e7e5 g1f3 g8f6", # principle variation if provided
     #   "seldepth": 24, # TODO: Figure what what this is
@@ -89,11 +93,10 @@ class GameAnalysis(models.Model):
     #   },
     #   "time": 1004, # time spent processing
     #   "nodes": 1686023, # nodes processed
-    #   "nps": 1670251 # nodes-per-second
+    #   "nps": 1670251, # nodes-per-second
+    #   "masterdb_matches": 45 # number of times position appears in masters db
     # },
     analysis = JSONField()
-
-    nodes = models.IntegerField(null=True)
 
     class Meta:
         index_together = [

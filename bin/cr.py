@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import click
 import inspect
 import os
@@ -14,10 +15,10 @@ from dotenv import load_dotenv
 @click.command()
 @click.option('--database', required=True, help='The sqlite database to import')
 @click.option('--analysis-source', required=True, help='Name of the analysis source')
-@click.option('--fishnet-version', required=True, help='The fishnet version of the analysis')
-def import_cr_games(database, analysis_source, fishnet_version):
+@click.option('--stockfish-version', required=True, help='The stockfish version of the analysis')
+def import_cr_games(database, analysis_source, stockfish_version):
     from sonder.cr import import_cr_database
-    import_cr_database(database, analysis_source, fishnet_version)
+    import_cr_database(database, analysis_source, stockfish_version)
 
 
 
