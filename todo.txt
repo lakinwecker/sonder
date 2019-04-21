@@ -2,14 +2,9 @@
 (A) Integration with lichess OAuth +lila
 (A) Patch fishnet to be useful for this context +CR +api +fishnet
 (A) Script to download PGN + metadata of games lichess +simple +lila
-(A) Script to export CR data into json +simple +CR
-(A) Script to import CR data from json +simple +CR
 (A) Script to ingest data from irwin. +irwin
 (A) Script to listen to lichess for new players to process +simple +lila
-(A) Script to scrape list of games with season and league from lichess4545.com +simple +heltour
-(A) Need to model the tags we want to use appropriately +db
 (A) We need the irwin report data modeled +db +irwin
-(A) Need a piece of code that converts a PGN into a set of UCI moves. +python-chess
 (B) Graph / Exploratory data +CR
 (B) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
 (B) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin
@@ -29,3 +24,8 @@ x 2019-04-13 Model something to replace "gameAnalysis" +db +irwin
 x 2019-04-13 Model something to replace "token +db +irwin
 x 2019-04-13 Models to house analysis (modelled after CR) +django
 x 2019-04-13 the model for a move needs to be able to sore the mate distance not just cpl +irwin
+x 2019-04-21 Need a piece of code that converts a PGN into a set of UCI moves. +python-chess
+x 2019-04-21 Need to model the tags we want to use appropriately +db
+x 2019-04-21 Script to export CR data into json +simple +CR
+x 2019-04-21 Script to import CR data from json +simple +CR
+x 2019-04-21 Script to scrape list of games with season and league from lichess4545.com +simple +heltour
