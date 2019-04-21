@@ -5,6 +5,7 @@
 (A) Script to ingest data from irwin. +irwin
 (A) Script to listen to lichess for new players to process +simple +lila
 (A) We need the irwin report data modeled +db +irwin
+(A) The import PGN script should work on scripts with multiple games +CR
 (B) Graph / Exploratory data +CR
 (B) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
 (B) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin
