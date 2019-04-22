@@ -14,11 +14,11 @@ def pgn_to_uci(pgn):
 
 def import_pgn_to_db(pgn):
     pgn_in = open(pgn)
-    while True:
-        game = chess.pgn.read_game(pgn_in)
-        if game is None:
-            break
+    game = chess.pgn.read_game(pgn_in)
+    while game:
         insert_game_into_db(game)
+        game = chess.pgn.read_game(pgn_in)
+
 
 def insert_game_into_db(game):
     w, _ = Player.objects.get_or_create(username=game.headers['White'])
