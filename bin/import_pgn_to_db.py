@@ -14,11 +14,17 @@ sys.path.insert(0, os.path.join(bin_dir, ".."))
 from dotenv import load_dotenv
 
 @click.command()
-@click.option('--pgn', required=True, help='The pgn of game to be added to database')
+@click.option('--pgn', required=True, help='The pgn of game(s) to be added to database')
 def import_pgn_to_db(pgn):
-    from sonder.analysis.models import Game, Player
     pgn_in = open(pgn)
-    game = chess.pgn.read_game(pgn_in)
+    while True:
+        game = chess.pgn.read_game(pgn_in)
+        if game is None:
+            break
+        into_db(game)
+
+def into_db(game):
+    from sonder.analysis.models import Game, Player
     w, _ = Player.objects.get_or_create(username=game.headers['White'])
     b, _ = Player.objects.get_or_create(username=game.headers['Black'])
     exporter = chess.pgn.StringExporter(headers=True, variations=False, comments=False)
