@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 @click.command()
 @click.option('--pgn', help='pgn to be converted to UCI moves')
 def main(pgn):
-	sys.path.insert(0, "..")
+    sys.path.insert(0, "..")
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
     from sonder.utils import pgn_to_uci
