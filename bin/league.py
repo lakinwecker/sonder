@@ -4,7 +4,6 @@ import os
 import sys
 
 sys.path.insert(0, "..")
-print(sys.path)
 
 from dotenv import load_dotenv
 
