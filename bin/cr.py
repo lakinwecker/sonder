@@ -11,18 +11,16 @@ sys.path.insert(0, os.path.join(bin_dir, ".."))
 
 from dotenv import load_dotenv
 
-
 @click.command()
 @click.option('--database', required=True, help='The sqlite database to import')
 @click.option('--analysis-source', required=True, help='Name of the analysis source')
 @click.option('--stockfish-version', required=True, help='The stockfish version of the analysis')
-def import_cr_games(database, analysis_source, stockfish_version):
-    from sonder.cr import import_cr_database
-    import_cr_database(database, analysis_source, stockfish_version)
-
-
-if __name__ == '__main__':
+def main(database, analysis_source, stockfish_version):
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
     django.setup()
-    import_cr_games()
+    from sonder.cr import import_cr_database
+    import_cr_database(database, analysis_source, stockfish_version)
+
+if __name__ == '__main__':
+    main()
