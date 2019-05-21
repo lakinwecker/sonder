@@ -1,6 +1,6 @@
 from django.urls import path
 
-from sonder.analysis import views
+from . import views
 
 urlpatterns = [
     path('acquire', views.acquire, name='acquire'),

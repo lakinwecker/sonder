@@ -16,6 +16,7 @@ click = "*"
 python-dotenv = "*"
 jsonschema = "*"
 python-chess = "*"
+authlib = "*"
 
 [requires]
 python_version = "3.7"

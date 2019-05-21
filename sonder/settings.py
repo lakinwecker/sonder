@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sonder.analysis',
+    'sonder.frontend',
 ]
 
 MIDDLEWARE = [
@@ -83,3 +84,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.environ.get('STATIC_ROOT', None)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "frontend/build/"),
+]
+
