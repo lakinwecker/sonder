@@ -55,7 +55,6 @@ backgrounds : Array UserBackground
 backgrounds =
     fromList
         [ BackgroundImage "/static/sonder/frontend/images/architecture-building-city-1137525.jpg"
-        , BackgroundImage "/static/sonder/frontend/images/20150716_Mexico_City_at_Night_IMG_6614_by_sebaso.jpg"
         , BackgroundImage "/static/sonder/frontend/images/architecture-buildings-city-2067048.jpg"
         ]
 
