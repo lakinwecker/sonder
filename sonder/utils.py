@@ -35,7 +35,22 @@ def insert_game_into_db(game):
     g.set_pgn(pgn_text)
     g.save()
 
-def get_game_analyses_from_db(gameids):
+#Notes:
+#ChessReanalysis structures
+#game gameplayer move player
+#CREATE TABLE IF NOT EXISTS "game" ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "is_analyzed" INTEGER NOT NULL);
+#INSERT INTO game VALUES('6OuA9Pzz',1);
+#CREATE TABLE IF NOT EXISTS "player" ("id" INTEGER NOT NULL PRIMARY KEY, "username" VARCHAR(255) NOT NULL);
+#INSERT INTO player VALUES(1,'dotaautochess');
+#CREATE TABLE IF NOT EXISTS "gameplayer" ("id" INTEGER NOT NULL PRIMARY KEY, "game_id" VARCHAR(255) NOT NULL, "color" CHAR(1) NOT NULL, "player_id" INTEGER NOT NULL, FOREIGN KEY ("game_id") REFERENCES "game" ("id"), FOREIGN KEY ("player_id") REFERENCES "player" ("id"));
+#INSERT INTO gameplayer VALUES(1,'6OuA9Pzz','w',1);
+#CREATE TABLE IF NOT EXISTS "move" ("id" INTEGER NOT NULL PRIMARY KEY, "game_id" VARCHAR(255) NOT NULL, "color" CHAR(1) NOT NULL, "number" INTEGER NOT NULL, "pv1_eval" INTEGER NOT NULL, "pv2_eval" INTEGER, "pv3_eval" INTEGER, "pv4_eval" INTEGER, "pv5_eval" INTEGER, "played_eval" INTEGER NOT NULL, "played_rank" INTEGER, "nodes" INTEGER, "masterdb_matches" INTEGER, FOREIGN KEY ("game_id") REFERENCES "game" ("id"));
+#INSERT INTO move VALUES(1,'UjjpxfT2','w',23,29999,29996,29995,29994,29994,29999,1,4500592,NULL);
+#workingset
+#{'XdWz7xCj': <chess.pgn.Game object at 0x7fd1ddd294a8>, 'upCHAiZ8': <chess.pgn.Game object at 0x7fd1ddd29518>, '3PWBaiNU': <chess.pgn.Game object at 0x7fd1ddd29588>, 'sj0rRs0p': <chess.pgn.Game object at 0x7fd1db3e0828>, 'QE19nwbB': <chess.pgn.Game object at 0x7fd1ddd29978>, '3gxV6COp': <chess.pgn.Game object at 0x7fd1db36e9b0>, 'bIJWIld6': <chess.pgn.Game object at 0x7fd1db3bfa58>, 'pfPF6jVl': <chess.pgn.Game object at 0x7fd1db362ba8>, '6OuA9Pzz': <chess.pgn.Game object at 0x7fd1db31e780>, 'UjjpxfT2': <chess.pgn.Game object at 0x7fd1db2dcd68>, 'a9oIsdVx': <chess.pgn.Game object at 0x7fd1db3f9860>}
+
+
+def get_analysed_game_pgns_from_db(gameids):
     working_set = {}
     for gameid in gameids:
         if GameAnalysis.objects.filter(game__lichess_id=gameid).exists():
@@ -100,17 +115,10 @@ def cr_report(gameids):
         by_player = defaultdict(PgnSpyResult)
         by_game = defaultdict(PgnSpyResult)
         excluded = included = 0
-        for gid, pgn in working_set.items():
-            game_obj, _ = Game.get_or_create(id=gid)
-            if not game_obj.is_analyzed:
-                excluded += 1
-                continue
+        for gid, analysis in working_set.items():
 
-            a1_game(p, by_player, by_game, game_obj, pgn, 'w', GamePlayer.get(game=game_obj, color='w').player)
-            a1_game(p, by_player, by_game, game_obj, pgn, 'b', GamePlayer.get(game=game_obj, color='b').player)
-            included += 1
-        if excluded:
-            print(f'Skipping {excluded} games that haven\'t been pre-processed')
+            a1_game(gid, p, by_player, by_game, analysis, 'w', Game.objects.get(lichess_id=gid).white_player)
+            a1_game(gid, p, by_player, by_game, analysis, 'b', Game.objects.get(lichess_id=gid).black_player)
 
         out_path = f'report-a1--{datetime.now():%Y-%m-%d--%H-%M-%S}--{report_name}.txt'
         with open(out_path, 'w') as fout:
@@ -129,18 +137,15 @@ def cr_report(gameids):
                 fout.write('\n')
         print(f'Wrote report on {included} games to "{out_path}"')
 
-    def a1_game(p, by_player, by_game, game_obj, pgn, color, player):
-        moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
-
+    def a1_game(gid, p, by_player, by_game, moves, color, player):
         r = PgnSpyResult()
-        r.game_list.append(game_obj.id)
-        try:
-            r.with_rating(int(pgn.headers['WhiteElo' if color == 'w' else 'BlackElo']))
-        except ValueError:
-            pass
+        r.game_list.append(gid)
+      #  moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
+#TODO make Move objects from the analysis first?
 
         evals = []
         for m in moves:
+            print(m)
             if m.color != color:
                 evals.append(-m.pv1_eval)
                 continue
@@ -213,5 +218,5 @@ def cr_report(gameids):
         c = z * (ns * (n - ns) / n + z**2 / 4)**(1/2)
         return (a * (b - c), a * (b + c))
 
-    working_set = get_game_analyses_from_db(gameids)
+    working_set = get_analysed_game_pgns_from_db(gameids)
     a1(working_set, "test")
