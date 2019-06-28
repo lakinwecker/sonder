@@ -88,3 +88,21 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/build/"),
 ]
 
+LICHESS_OAUTH_CLIENT_ID = os.environ.get('LICHESS_OAUTH_CLIENT_ID', '')
+LICHESS_CLIENT_SECRET = os.environ.get('LICHESS_CLIENT_SECRET', '')
+AUTHLIB_OAUTH_CLIENTS = {
+    'lichess': {
+        'client_id': LICHESS_OAUTH_CLIENT_ID,
+        'client_secret': LICHESS_CLIENT_SECRET,
+        #'request_token_url': 'https://oauth.lichess.org/oauth',
+        #'request_token_params': None,
+        'access_token_url': 'https://oauth.lichess.org/oauth',
+        'access_token_params': None,
+        'refresh_token_url': None,
+        'authorize_url': 'https://oauth.lichess.org/oauth/authorize',
+        'api_base_url': 'https://lichess.org/api',
+        'client_kwargs': {
+            'scope': 'email:read',
+        }
+    }
+}

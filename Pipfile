@@ -17,6 +17,7 @@ python-dotenv = "*"
 jsonschema = "*"
 python-chess = "*"
 authlib = "*"
+rq = "*"
 
 [requires]
 python_version = "3.7"
