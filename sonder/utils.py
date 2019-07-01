@@ -119,10 +119,42 @@ def cr_report(gameids):
         by_player = defaultdict(PgnSpyResult)
         by_game = defaultdict(PgnSpyResult)
         excluded = included = 0
-        for gid, analysis in working_set.items():
+        
+    class Move:
+        def __init__(self, sonder_data):
+              self.sonder_data = sonder_data
+        
+        @property
+        def pv1_eval(self):
+            return 456789* pv1_eval
+            
+  *  analysis.pvs[0]['score']['cp']
+* pv2_eval
+  *  analysis.pvs[1]['score']['cp']
+* pv3_eval
+  *  analysis.pvs[2]['score']['cp']
+* pv4_eval
+  *  analysis.pvs[3]['score']['cp']
+* pv5_eval
+  *  analysis.pvs[4]['score']['cp']
+* played_eval
+  *  Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
+* played_rank
+  *  Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
+* color
+  *  move % 2
+* number
+  *  we have that.
 
-            a1_game(gid, p, by_player, by_game, analysis, 'w', Game.objects.get(lichess_id=gid).white_player)
-            a1_game(gid, p, by_player, by_game, analysis, 'b', Game.objects.get(lichess_id=gid).black_player)
+
+
+
+
+
+        for gid, moves in working_set.items():
+
+            a1_game(gid, p, by_player, by_game, moves, 'w', Game.objects.get(lichess_id=gid).white_player)
+            a1_game(gid, p, by_player, by_game, moves, 'b', Game.objects.get(lichess_id=gid).black_player)
 
         out_path = f'report-a1--{datetime.now():%Y-%m-%d--%H-%M-%S}--{report_name}.txt'
         with open(out_path, 'w') as fout:
