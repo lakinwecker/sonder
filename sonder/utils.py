@@ -118,37 +118,38 @@ def cr_report(gameids):
         p = json.loads('{"book_depth": 10,"forced_move_thresh": 50,"unclear_pos_thresh": 100,"undecided_pos_thresh": 200,"losing_pos_thresh": 500,"exclude_forced": true,"include_only_unclear": true,"exclude_flat": true,"max_cpl": 501}')
         by_player = defaultdict(PgnSpyResult)
         by_game = defaultdict(PgnSpyResult)
-        excluded = included = 0
         
-    class Move:
-        def __init__(self, sonder_data):
-              self.sonder_data = sonder_data
-        
-        @property
-        def pv1_eval(self):
-            return 456789* pv1_eval
+        class Move:
+            def __init__(self, sonder_data):
+                self.sonder_data = sonder_data
             
-  *  analysis.pvs[0]['score']['cp']
-* pv2_eval
-  *  analysis.pvs[1]['score']['cp']
-* pv3_eval
-  *  analysis.pvs[2]['score']['cp']
-* pv4_eval
-  *  analysis.pvs[3]['score']['cp']
-* pv5_eval
-  *  analysis.pvs[4]['score']['cp']
-* played_eval
-  *  Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
-* played_rank
-  *  Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
-* color
-  *  move % 2
-* number
-  *  we have that.
-
-
-
-
+            @property
+            def pv1_eval(self):
+                return 456789 #analysis.pvs[0]['score']['cp']
+            @property
+            def pv2_eval(self):
+                return 456789 #analysis.pvs[1]['score']['cp']
+            @property
+            def pv3_eval(self):
+                return 456789 #analysis.pvs[2]['score']['cp']
+            @property
+            def pv4_eval(self):
+                return 456789 #analysis.pvs[3]['score']['cp']
+            @property
+            def pv5_eval(self):
+                return 456789 #analysis.pvs[4]['score']['cp']
+            @property
+            def played_eval(self):
+                return 456789 #Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
+            @property
+            def played_rank(self):
+                return 3 #Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
+            @property
+            def color(self):
+                return 'w' #move % 2
+            @property
+            def number(self):
+                return 2
 
 
         for gid, moves in working_set.items():
