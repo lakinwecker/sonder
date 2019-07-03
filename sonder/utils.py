@@ -4,7 +4,14 @@ import json
 from collections import defaultdict
 from sonder.analysis.models import Game, Player, GameAnalysis
 from datetime import datetime
+from functools import partial
+from operator import eq, lt
+import math
 
+# TODO: Make this configurable via the config file.
+_cp_loss_intervals = [0, 10, 25, 50, 100, 200, 500]
+_cp_loss_names = ["=0"] + [f">{cp_incr}" for cp_incr in _cp_loss_intervals]
+_cp_loss_ops = [partial(eq,0)] + [partial(lt, cp_incr) for cp_incr in _cp_loss_intervals]
 
 def pgn_to_uci(pgn):
     """A method that should take a PGN string and return a list of uci moves.
@@ -61,6 +68,7 @@ def get_analysed_game_pgns_from_db(gameids):
     for gameid in gameids:
         if GameAnalysis.objects.filter(game__lichess_id=gameid).exists():
             working_set[gameid] = GameAnalysis.objects.get(game__lichess_id=gameid).analysis
+            #TODO: ensure all games are fully analysed here, ^ this only ensures analysis started
     return working_set
 
 def cr_report(gameids):
@@ -122,42 +130,64 @@ def cr_report(gameids):
         by_game = defaultdict(PgnSpyResult)
         
         class Move:
-            def __init__(self, sonder_data):
-                self.sonder_data = sonder_data
-            
+            def __init__(self, move_analysis, next_move_analysis, move_ply):
+                self.move_analysis = move_analysis
+                self.next_move_analysis = next_move_analysis
+                self.move_ply = move_ply
+
             @property
             def pv1_eval(self):
-                return 456789 #analysis.pvs[0]['score']['cp']
+                return int(move_analysis[0]['score']['cp'])
             @property
             def pv2_eval(self):
-                return 456789 #analysis.pvs[1]['score']['cp']
+                return int(move_analysis[1]['score']['cp'])
             @property
             def pv3_eval(self):
-                return 456789 #analysis.pvs[2]['score']['cp']
+                return int(move_analysis[2]['score']['cp'])
             @property
             def pv4_eval(self):
-                return 456789 #analysis.pvs[3]['score']['cp']
+                return int(move_analysis[3]['score']['cp'])
             @property
             def pv5_eval(self):
-                return 456789 #analysis.pvs[4]['score']['cp']
+                return int(move_analysis[4]['score']['cp'])
             @property
             def played_eval(self):
-                return 456789 #Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
+                try:
+                    return int(next_move_analysis[0]['score']['cp'])
+                except TypeError:
+                    return 0
+                #Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
             @property
             def played_rank(self):
-                return 3 #Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
+                for i, pv_eval in enumerate([self.pv1_eval, self.pv2_eval, self.pv3_eval, self.pv4_eval, self.pv5_eval]):
+                    if pv_eval == self.played_eval:
+                        return i+1
+                    else:
+                        return 6
+                #Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
             @property
             def color(self):
-                return 'w' #move % 2
+                if self.move_ply % 2 == 0:
+                    return 'w'
+                else:
+                    return 'b'
             @property
             def number(self):
-                return 2
+                return (self.move_ply+2)//2
 
         for gid, analysis in working_set.items():
             moves = []
-            for move_analysis in analysis:
-                moves.append(Move(move_analysis))
+            for i in range(len(analysis)):
+                move_ply = i
+                move_analysis = analysis[i]
+                try:
+                    next_move_analysis = analysis[i+1]
+                except IndexError:
+                    next_move_analysis = None
+                moves.append(Move(move_analysis, next_move_analysis, move_ply))
+                #print(gid, Move(move_analysis).pv1_eval)
             working_set[gid] = moves
+
 
         for gid, moves in working_set.items():
 
@@ -185,11 +215,10 @@ def cr_report(gameids):
         r = PgnSpyResult()
         r.game_list.append(gid)
       #  moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
-#TODO make Move objects from the analysis first?
 
         evals = []
         for m in moves:
-            print(m)
+            #print(m.pv1_eval)
             if m.color != color:
                 evals.append(-m.pv1_eval)
                 continue
@@ -237,7 +266,7 @@ def cr_report(gameids):
                 r.gt10 += 1
 
         by_player[player].add(r)
-        by_game[(player, game_obj.id)].add(r)
+        by_game[(player, gid)].add(r)
 
     def t_output(fout, result):
         if result.t1_total:
@@ -262,5 +291,14 @@ def cr_report(gameids):
         c = z * (ns * (n - ns) / n + z**2 / 4)**(1/2)
         return (a * (b - c), a * (b + c))
 
+    def generate_stats_string(sample, total):
+        percentage = sample / total
+        stderr = std_error(percentage, total)
+        ci = wilson_interval(sample, total)
+        return f'{sample}/{total}; {percentage:.01%} (CI: {ci[0]*100:.01f} - {ci[1]*100:.01f})'
+
+    def std_error(p, n):
+        return math.sqrt(p*(1-p)/n)
+    
     working_set = get_analysed_game_pgns_from_db(gameids)
     a1(working_set, "test")
