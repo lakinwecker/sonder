@@ -3,6 +3,8 @@ import io
 import json
 from collections import defaultdict
 from sonder.analysis.models import Game, Player, GameAnalysis
+from datetime import datetime
+
 
 def pgn_to_uci(pgn):
     """A method that should take a PGN string and return a list of uci moves.
@@ -151,6 +153,11 @@ def cr_report(gameids):
             def number(self):
                 return 2
 
+        for gid, analysis in working_set.items():
+            moves = []
+            for move_analysis in analysis:
+                moves.append(Move(move_analysis))
+            working_set[gid] = moves
 
         for gid, moves in working_set.items():
 
@@ -172,7 +179,7 @@ def cr_report(gameids):
                 t_output(fout, result)
                 fout.write(' '.join(result.game_list) + '\n')
                 fout.write('\n')
-        print(f'Wrote report on {included} games to "{out_path}"')
+        print(f'Wrote report on x games to "{out_path}"')
 
     def a1_game(gid, p, by_player, by_game, moves, color, player):
         r = PgnSpyResult()
