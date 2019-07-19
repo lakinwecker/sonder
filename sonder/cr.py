@@ -76,7 +76,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
         with open(f"{base_dir}/move.csv", "r") as moves_fd:
             for line in moves_fd.readlines():
                 parts = line.strip().split(",")
-                _,game_id,color,number,pv1_eval,pv2_eval,pv3_eval,pv4_eval,pv5_eval,_,_,nodes,masterdb_matches = parts
+                _,game_id,color,number,pv1_eval,pv2_eval,pv3_eval,pv4_eval,pv5_eval,played_eval,played_rank,nodes,masterdb_matches = parts
                 analysis = game_analysis[game_id]
                 analysis[number].update({
                     'color': color,
@@ -85,9 +85,10 @@ def import_cr_database(database, analysis_source, stockfish_version):
                     'pv3_eval': pv3_eval,
                     'pv4_eval': pv4_eval,
                     'pv5_eval': pv5_eval,
-                    #  TODO: I believe these should be extracted from the next move eval
-                    # 'played_eval': played_eval,
-                    # 'played_rank': played_rank,
+                    # These can ostensibly be extracted from the PVs, but CR analysis
+                    # didn't store the PVs so we don't have that data
+                    'played_eval': played_eval,
+                    'played_rank': played_rank,
                     'nodes': nodes,
                     'masterdb_matches': masterdb_matches,
                 })
@@ -126,6 +127,13 @@ def import_cr_database(database, analysis_source, stockfish_version):
                         #"nps": ??
                         #"masterdb_matches": ??
                     })
+            sonder_analysis = [
+                {
+                    "move": move_num,
+                    "pvs": pvs
+                }
+                for move_num, pvs in sorted(sonder_analysis.items())
+            ]
             game_analysis.analysis = sonder_analysis
             game_analysis.save()
 
