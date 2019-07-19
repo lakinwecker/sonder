@@ -7,13 +7,16 @@ import Styles as S
 import Common exposing (..)
 
 
+-- MODEL
+
+
 type alias Model =
     { status : PageStatus
     }
 
 
-defaultModel : Model
-defaultModel =
+init : Model
+init =
     { status = Loading }
 
 
@@ -41,6 +44,15 @@ view model =
             Failure ->
                 S.error "Unable to fetch login URL. Please try again"
         ]
+
+
+
+-- Update
+
+
+type Msg
+    = GotLichessOAuthURL (Result Http.Error String)
+    | AuthStatus (Result Http.Error User)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

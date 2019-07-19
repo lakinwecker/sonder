@@ -12,8 +12,8 @@ type alias Model =
     }
 
 
-defaultModel : Model
-defaultModel =
+init : Model
+init =
     { status = Loading }
 
 

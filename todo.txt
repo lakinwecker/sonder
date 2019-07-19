@@ -1,3 +1,6 @@
+x 2019-07-01 Add the model to elm to determine whether someone is logged in or not +ui
+(A) Add a list of players with analysis with paging? +ui +django
+(A) Add a way to generate a CR report for a given player +ui +django
 (A) /analysis/acquire to dole out game to analyze +api +fishnet
 (A) Move the database code from sonder/utils.py into an appropriate spot +db
 (A) Patch fishnet to be useful for this context +CR +api +fishnet

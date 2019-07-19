@@ -44,14 +44,6 @@ type Username
     = Username String
 
 
-type Msg
-    = LinkClicked Browser.UrlRequest
-    | UrlChanged Url.Url
-    | GotLichessOAuthURL (Result Http.Error String)
-    | AuthStatus (Result Http.Error User)
-    | BrowserResize Int Int
-
-
 defaultBackgroundColor =
     BackgroundColor 0 0 0
 

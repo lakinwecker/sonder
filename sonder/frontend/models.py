@@ -20,7 +20,6 @@ class OAuth2Token(models.Model):
         self.token_type = token.get('token_type', 'bearer')
         self.access_token = token.get('access_token')
         self.refresh_token = token.get('refresh_token')
-        print(token.get('expires_at'))
         expires_at = datetime.datetime.fromtimestamp(token.get('expires_at'))
         self.expires_at = expires_at
 
@@ -31,4 +30,12 @@ class OAuth2Token(models.Model):
             refresh_token=self.refresh_token,
             expires_at=self.expires_at,
         )
+
+
+class UserPreferences(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    background = models.CharField(max_length=255, default="")
+
+    def json(self):
+        return {"background": self.background}
 

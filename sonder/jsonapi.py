@@ -10,13 +10,16 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.utils.log import log_response
 
-def api(in_schema, out_schema):
+def api(in_schema=None, out_schema=None):
     """
     Decorator to make a view only accept and return a particular json schema. Usage::
         @json_api(JobRequest, JobResponse)
         def my_view(request, job_request):
             job_response = JobResponse()
             return job_response
+
+    Both parameters are optional and if left out, no processing will be done for that
+    direction.
     """
     def decorator(func):
         @wraps(func)
@@ -28,32 +31,38 @@ def api(in_schema, out_schema):
                     request=request,
                 )
 
-            try:
-                in_instance = json.loads(request.body)
-            except json.JSONDecodeError:
-                response = HttpResponseBadRequest("Unable to decode json body")
-                log("Bad Request", response)
+            json_request = None
+            if in_schema:
+                try:
+                    json_request = json.loads(request.body)
+                except json.JSONDecodeError:
+                    response = HttpResponseBadRequest("Unable to decode json body")
+                    log("Bad Request", response)
+                    return response
+
+                try:
+                    validate(instance=json_request, schema=in_schema)
+                except ValidationError as e:
+                    response = HttpResponseBadRequest(json.dumps(
+                        {'error': str(e.message)}
+                    ))
+                    log("Bad Request", response)
+                    return response
+            response = func(request, json_request, *args, **kwargs)
+
+            if out_schema:
+                try:
+                    validate(instance=response, schema=out_schema)
+                except ValidationError as e:
+                    if settings.DEBUG:
+                        raise
+                    response = HttpResponseServerError("Invalid response type")
+                    log("Server Error", response)
+                    return response
+                return JsonResponse(response)
+            else:
                 return response
 
-            try:
-                validate(instance=in_instance, schema=in_schema)
-            except ValidationError as e:
-                response = HttpResponseBadRequest(json.dumps(
-                    {'error': str(e.message)}
-                ))
-                log("Bad Request", response)
-                return response
-
-            out_instance = func(request, in_instance, *args, **kwargs)
-            try:
-                validate(instance=out_instance, schema=out_schema)
-            except ValidationError as e:
-                if settings.DEBUG:
-                    raise
-                response = HttpResponseServerError("Invalid response type")
-                log("Server Error", response)
-                return response
-            return JsonResponse(json.dumps(out_instance))
         return inner
     return decorator
 

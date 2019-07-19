@@ -5,9 +5,11 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('login', views.index, name='login'),
-    path('dashboard', views.index, name='dashboard'),
+    path('login/status', views.auth_status, name='login.auth-status'),
     path('login/start', views.login, name='login.start'),
     path('login/authorize', views.authorize, name='login.authorize'),
     path('login/unauthorized', views.index, name='login.unauthorized'),
+    path('dashboard', views.index, name='dashboard'),
+    path('players', views.index, name='dashboard'),
 ]
 

@@ -7,14 +7,16 @@ type Route
     = Login
     | Unauthorized
     | Dashboard
+    | PlayerList
 
 
 routeParser : Parser (Route -> a) a
 routeParser =
     oneOf
         [ map Login (s "login")
-        , map Unauthorized (s "login" </> s "unauthorized")
         , map Dashboard (s "dashboard")
+        , map PlayerList (s "players")
+        , map Unauthorized (s "login" </> s "unauthorized")
         ]
 
 

@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from . import json
+from .. import jsonapi
 from .schema import (
     FishnetRequest,
     FishnetJob,
@@ -16,7 +16,7 @@ from .models import (
 
 @csrf_exempt
 @require_POST
-@json.api(FishnetRequest, FishnetJob)
+@jsonapi.api(FishnetRequest, FishnetJob)
 def acquire(request, fishnet_request):
     analysis_source = get_object_or_404(
         AnalysisSource, secret_token=fishnet_request["fishnet"]["apikey"])
