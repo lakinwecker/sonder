@@ -137,7 +137,39 @@ def cr_report(gameids):
                 fout.write('\n')
         print(f'Wrote report on {included} games to "{out_path}"')
 
-    def a1_game(gid, p, by_player, by_game, moves, color, player):
+    def a1_game(gid, p, by_player, by_game, analysis, color, player):
+        class Move():
+            def __init__(self, game, color, number, pv1_eval, pv2_eval, pv3_eval, pv4_eval, pv5_eval, played_eval, played_rank, nodes):
+                self.game = game
+                self.color = color
+                self.number = number
+                self.pv1_eval = pv1_eval
+                self.pv2_eval = pv2_eval
+                self.pv3_eval = pv3_eval
+                self.pv4_eval = pv4_eval
+                self.pv5_eval = pv5_eval
+                self.played_eval = played_eval
+                self.played_rank = played_rank
+                self.nodes = nodes
+        moves = []
+        for n, move in enumerate(analysis):
+            move_color = "w" if n%2==0 else "b"
+            Move(gid, move_color, n//2,\
+             move[0]['score']['cp'],\
+             move[1]['score']['cp'],\
+             move[2]['score']['cp'],\
+             move[3]['score']['cp'],\
+             move[4]['score']['cp'],\
+             )
+
+"""Move.create(game=game_obj, color=color, number=board.fullmove_number, \
+pv1_eval=evals.get(1), pv2_eval=evals.get(2), pv3_eval=evals.get(3), \
+pv4_eval=evals.get(4), pv5_eval=evals.get(5), \
+played_rank=played_index, played_eval=played_eval
+
+[{'pv': '', 'nodes': '4501294', 'score': {'cp': '76', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '46', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '46', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '38', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '39', 'mate': None}}]
+            """
+
         r = PgnSpyResult()
         r.game_list.append(gid)
       #  moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
