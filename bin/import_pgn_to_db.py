@@ -13,12 +13,13 @@ from dotenv import load_dotenv
 
 @click.command()
 @click.option('--pgn', required=True, help='The pgn of game(s) to be added to database')
-def main(pgn):
+@click.option('--encoding', default="ISO-8859-1", required=False, help='Encoding of the file')
+def main(pgn, encoding):
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
     django.setup()
     from sonder.utils import import_pgn_to_db
-    import_pgn_to_db(pgn)
+    import_pgn_to_db(pgn, encoding=encoding)
 
 if __name__ == '__main__':
     main()

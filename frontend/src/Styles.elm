@@ -9,64 +9,78 @@ import Colors as C
 
 
 scaled x =
-    round (modular 24 1.25 x)
-
-
-alfaSlab =
-    Font.family [ Font.typeface "Alfa Slab One", Font.typeface "cursive" ]
-
-
-lora =
-    Font.family [ Font.typeface "Lora", Font.typeface "serif" ]
+    round (modular 20 1.25 x)
 
 
 lato =
     Font.family [ Font.typeface "Lato", Font.typeface "sans-serif" ]
 
 
+raleway =
+    Font.family [ Font.typeface "Raleway", Font.typeface "sans-serif" ]
+
+
+coustard =
+    Font.family [ Font.typeface "Coustard", Font.typeface "sans-serif" ]
+
+
+backgroundAlpha =
+    0.85
+
+
+bg : Color -> Color
+bg c =
+    C.alpha c backgroundAlpha
+
+
 titleFont : List (Attribute msg)
 titleFont =
-    [ alfaSlab
-    , Font.size (scaled 8)
+    [ coustard
+    , Font.size (scaled 4)
     ]
 
 
 heroBox : List (Attribute msg)
 heroBox =
-    [ Background.color C.secondaryShade2
-    , Font.color C.quinaryShade1
-    , alpha 0.97
+    [ Background.color (bg C.primaryShade3)
+    , Font.color C.quaternaryShade2
     ]
 
 
 textFont : List (Attribute msg)
 textFont =
-    [ lora ]
+    [ raleway ]
 
 
 textBox : List (Attribute msg)
 textBox =
-    [ Background.color C.lightGrey
-    , Font.color C.secondaryShade3
+    [ Background.color (bg C.white)
+    , Font.color C.black
     ]
 
 
 introSize : List (Attribute msg)
 introSize =
-    [ Font.size (scaled 2)
-    , Font.bold
+    [ Font.size (scaled 1)
+    , Font.regular
+    ]
+
+
+errorSize : List (Attribute msg)
+errorSize =
+    [ Font.size (scaled 1)
     ]
 
 
 button : List (Attribute msg)
 button =
-    [ Background.color C.primaryShade1
-    , Border.color C.primaryShade2
+    [ Background.color C.queenBlue2
+    , Border.color C.charcoalBlue1
     , Border.rounded 10
     , Border.width 4
-    , Font.color C.primaryShade3
+    , Font.color C.celestialBlue0
     , paddingXY 50 20
     , Font.variant Font.smallCaps
-    , lato
+    , coustard
     , alignRight
     ]
