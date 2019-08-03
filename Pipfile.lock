@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b30da1f4ca9a0dea2d6a17e34caa5e6d770a6b0964c86074c95aedf714fc3283"
+            "sha256": "7b118f4d6a5fe592d47681621a28d7a80a63324a95eadd6f12fa798d22f80808"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -92,6 +92,21 @@
             ],
             "index": "pypi",
             "version": "==7.0"
+        },
+        "colorama": {
+            "hashes": [
+                "sha256:05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d",
+                "sha256:f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"
+            ],
+            "version": "==0.4.1"
+        },
+        "crayons": {
+            "hashes": [
+                "sha256:41f0843815a8e3ac6fb445b7970d8b9c766e6f164092d84e7ea809b4c91418ec",
+                "sha256:8edcadb7f197e25f2cc094aec5bf7f1b6001d3f76c82d56f8d46f6fb1405554f"
+            ],
+            "index": "pypi",
+            "version": "==0.2.0"
         },
         "cryptography": {
             "hashes": [
@@ -249,6 +264,14 @@
                 "sha256:7c3dca29c022744e95b547e867cee89f4fce4373f3549ccd8797d8eb52cdb873"
             ],
             "version": "==0.3.0"
+        },
+        "tqdm": {
+            "hashes": [
+                "sha256:14a285392c32b6f8222ecfbcd217838f88e11630affe9006cd0e94c7eff3cb61",
+                "sha256:25d4c0ea02a305a688e7e9c2cdc8f862f989ef2a4701ab28ee963295f5b109ab"
+            ],
+            "index": "pypi",
+            "version": "==4.32.2"
         },
         "urllib3": {
             "hashes": [

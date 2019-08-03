@@ -19,6 +19,8 @@ jsonschema = "*"
 python-chess = "*"
 authlib = "*"
 rq = "*"
+crayons = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"
