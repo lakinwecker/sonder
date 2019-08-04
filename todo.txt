@@ -1,16 +1,15 @@
-x 2019-07-01 Add the model to elm to determine whether someone is logged in or not +ui
+(A) /analysis/acquire to dole out game to analyze +api +fishnet
 (A) Add a list of players with analysis with paging? +ui +django
 (A) Add a way to generate a CR report for a given player +ui +django
-(A) /analysis/acquire to dole out game to analyze +api +fishnet
+(A) Get irwin network deployed as a javascript network if possible +irwin +interface
+(A) Integrate rq to process most of these background jobs
 (A) Move the database code from sonder/utils.py into an appropriate spot +db
 (A) Patch fishnet to be useful for this context +CR +api +fishnet
-(A) Integrate rq to process most of these background jobs
 (A) Script to download PGN + metadata of games lichess +simple +lila
 (A) Script to ingest data from irwin. +irwin
 (A) Script to listen to lichess for new players to process +simple +lila
 (A) The import PGN script should work on scripts with multiple games +CR
 (A) We need the irwin report data modeled +db +irwin
-(A) Get irwin network deployed as a javascript network if possible +irwin +interface
 (B) Graph / Exploratory data +CR
 (B) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
 (B) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin
@@ -36,3 +35,4 @@ x 2019-04-21 Script to export CR data into json +simple +CR
 x 2019-04-21 Script to import CR data from json +simple +CR
 x 2019-04-21 Script to scrape list of games with season and league from lichess4545.com +simple +heltour
 x 2019-05-26 Integration with lichess OAuth +lila
+x 2019-07-01 Add the model to elm to determine whether someone is logged in or not +ui
