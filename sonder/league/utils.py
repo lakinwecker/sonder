@@ -1,8 +1,6 @@
 import requests
 import re
 
-from dotenv import load_dotenv
-
 def get_season_game_ids(league, season, rounds=None):
     """build list of game_ids from the round(s) by scraping lichess4545.com website"""
     if rounds is None:

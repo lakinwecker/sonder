@@ -131,7 +131,6 @@ def import_cr_database(database, analysis_source, stockfish_version):
                 }
             sonder_analysis = [empty_move(i+1) for i in range(last_move_number)]
             for move_number, cr_move_analysis in moves:
-                eval_keys = [f"pv{i}_eval" for i in range(1, 6)]
                 move_analysis = sonder_analysis[move_number-1]
                 move_analysis["cr"].update({
                     "played_eval": cr_move_analysis['played_eval'],

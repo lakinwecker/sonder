@@ -1,21 +1,18 @@
 import json
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.urls import reverse
 from django.db import transaction
 from django.contrib.auth.models import User
 from django.contrib.auth import login as authLogin
 from django.http import (
     HttpResponse,
-    HttpResponseForbidden,
     HttpResponseRedirect
 )
 
 from authlib.django.client import OAuth
 from .models import OAuth2Token, UserPreferences
 from .schema import UserLoginResult
-
-import requests
 
 from .. import jsonapi
 
