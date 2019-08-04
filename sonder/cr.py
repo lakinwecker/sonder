@@ -2,7 +2,6 @@ from collections import defaultdict
 import subprocess
 import tempfile
 import crayons
-import sys
 from tqdm import tqdm
 
 from sonder.analysis.models import (
