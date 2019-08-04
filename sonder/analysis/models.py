@@ -78,7 +78,18 @@ class GameAnalysis(models.Model):
     # A list of position analysis where each position
     # has a list of PVs.
     # The position will be:
-    # { 'move': 1, pvs: [] }
+    # {
+    #   'move': 1,
+    #   'pvs': [],
+    #   "cr": { # possibly empty  if the source of analysis is no CR
+    #     "played_rank": 1, # the rank of the move they played
+    #     "played_eval": 1, # the rank of the move they played
+    #     "masterdb_matches": 45 # number of times position appears in masters db from CR
+    #   }
+    #   "time": 1004, # time spent processing
+    #   "nodes": 1686023, # nodes processed
+    #   "nps": 1670251, # nodes-per-second
+    # }
     # pvs may be empty if no analysis was done.
     # Each pv is of the form:
     # {
@@ -90,10 +101,6 @@ class GameAnalysis(models.Model):
     #     "cp": 24, # cp eval
     #     "mate": None # number of moves until mate
     #   },
-    #   "time": 1004, # time spent processing
-    #   "nodes": 1686023, # nodes processed
-    #   "nps": 1670251, # nodes-per-second
-    #   "masterdb_matches": 45 # number of times position appears in masters db
     # },
     analysis = JSONField()
 

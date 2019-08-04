@@ -4,9 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
 
 [packages]
-django = "==2.2"
+django = "==2.2.3"
 psycopg2 = "*"
 honcho = "*"
 gunicorn = "*"
@@ -18,6 +19,8 @@ jsonschema = "*"
 python-chess = "*"
 authlib = "*"
 rq = "*"
+crayons = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"
