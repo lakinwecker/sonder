@@ -83,7 +83,7 @@ def cr_import(database, analysis_source, stockfish_version):
 @cr.command(name='report')
 @click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')
 def cr_report(gameids):
-    from sonder.utils import cr_report
+    from sonder.cr import cr_report
     cr_report(gameids.split())
 
 @cr.command(name='game-cps-debug')
