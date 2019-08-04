@@ -21,7 +21,7 @@ def cli():
 @click.option('--database', required=True, help='The sqlite database to import')
 @click.option('--analysis-source', required=True, help='Name of the analysis source')
 @click.option('--stockfish-version', required=True, help='The stockfish version of the analysis')
-def importchessreanalysis(database, analysis_source, stockfish_version):
+def importcr(database, analysis_source, stockfish_version):
     from sonder.cr import import_cr_database
     import_cr_database(database, analysis_source, stockfish_version)
 
