@@ -23,4 +23,4 @@ def main(database, analysis_source, stockfish_version):
     import_cr_database(database, analysis_source, stockfish_version)
 
 if __name__ == '__main__':
-    main()
+    main() # pylint: disable=no-value-for-parameter

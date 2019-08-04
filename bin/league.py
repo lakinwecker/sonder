@@ -17,4 +17,4 @@ def main(league, season):
     print(get_season_game_ids(league, season))
 
 if __name__ == '__main__':
-    main()
+    main() # pylint: disable=no-value-for-parameter

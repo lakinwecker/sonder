@@ -22,4 +22,4 @@ def main(pgn, encoding):
     import_pgn_to_db(pgn, encoding=encoding)
 
 if __name__ == '__main__':
-    main()
+    main() # pylint: disable=no-value-for-parameter

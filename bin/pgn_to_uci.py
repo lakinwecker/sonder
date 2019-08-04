@@ -20,4 +20,4 @@ def main(pgn):
     print(" ".join(pgn_to_uci(open(pgn, "r").read())))
 
 if __name__ == '__main__':
-    main()
+    main() # pylint: disable=no-value-for-parameter
