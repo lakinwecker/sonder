@@ -6,10 +6,11 @@ import os.path
 import sys
 import django
 
+from dotenv import load_dotenv
+
 bin_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, os.path.join(bin_dir, '..'))
 
-from dotenv import load_dotenv
 
 @click.group()
 def cli():
@@ -106,6 +107,7 @@ def cr_game_cps_debug(gameids):
                 move = move - 1
             move = (move // 2) + 1
             print(f"{color},{move},{s[0]},{s[1]},{s[2]},{s[3]},{s[4]}")
+
 
 if __name__ == '__main__':
     cli()
