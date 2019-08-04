@@ -1,8 +1,8 @@
 from collections import defaultdict
 import subprocess
 import tempfile
-import crayons
 from tqdm import tqdm
+import click
 
 from sonder.analysis.models import (
     AnalysisSource,
@@ -63,14 +63,14 @@ def import_cr_database(database, analysis_source, stockfish_version):
             player, _ = Player.objects.get_or_create(username=username.strip())
             players_by_old_id[old_player_id] = player
         process_csv("Loading players", f"{base_dir}/player.csv", process_player)
-        print(crayons.green("✓ Players Loaded"))
+        click.secho("✓ Players Loaded", fg='green')
 
         players_by_lichess_game_id = defaultdict(lambda: dict((("w", None), ("b", None))))
         def process_gameplayer(_, lichess_id, color, player_id):
             player = players_by_old_id[player_id]
             players_by_lichess_game_id[lichess_id][color] = player
         process_csv("Loading Game Players", f"{base_dir}/gameplayer.csv", process_gameplayer)
-        print(crayons.green("✓ GamePlayers Loaded"))
+        click.secho("✓ GamePlayers Loaded", fg='green')
 
         game_analysis_completed = {}
         def process_game(game_id, completed):
@@ -85,7 +85,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
                 game.save()
             game_analysis_completed[game.lichess_id] = completed
         process_csv("Loading Games", f"{base_dir}/game.csv", process_game)
-        print(crayons.green("✓ Games Loaded"))
+        click.secho("✓ Games Loaded", fg='green')
 
         game_analysis = defaultdict(lambda: defaultdict(dict))
         def process_move(_,game_id,color,number,pv1_eval,pv2_eval,pv3_eval,pv4_eval,pv5_eval,played_eval,played_rank,nodes,masterdb_matches):
@@ -106,7 +106,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
                 'masterdb_matches': masterdb_matches,
             })
         process_csv("Loading Moves", f"{base_dir}/move.csv", process_move)
-        print(crayons.green("✓ Moves Loaded"))
+        click.secho("✓ Moves Loaded", fg='green')
 
         analysis_source, _ = AnalysisSource.objects.get_or_create(name=analysis_source)
         progress = tqdm(game_analysis.items(), "Processing analysis", leave=False)
@@ -153,7 +153,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
             game_analysis.analysis = sonder_analysis
             game_analysis.save()
         progress.close()
-        print(crayons.green("✓ Analysis processed"))
+        click.secho("✓ Analysis Loaded", fg='green')
 
 
 

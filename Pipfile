@@ -19,7 +19,6 @@ jsonschema = "*"
 python-chess = "*"
 authlib = "*"
 rq = "*"
-crayons = "*"
 tqdm = "*"
 
 [requires]
