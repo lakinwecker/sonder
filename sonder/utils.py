@@ -129,28 +129,35 @@ def cr_report(gameids):
         by_player = defaultdict(PgnSpyResult)
         by_game = defaultdict(PgnSpyResult)
 
+        def int_or_none(val):
+            try:
+                return int(val)
+            except (ValueError, TypeError):
+                return None
+
         class Move:
             def __init__(self, move_analysis):
                 self.move_analysis = move_analysis
+                self.pvs = move_analysis['pvs']
             @property
             #TODO: change cp to account for mates if present (cp_to_score from CR)
             def pv1_eval(self):
-                return int(self.move_analysis['pvs'][0]['score']['cp'])
+                return int_or_none(self.pvs[0]['score']['cp'])
             @property
             def pv2_eval(self):
-                return int(self.move_analysis['pvs'][1]['score']['cp'])
+                return int_or_none(self.pvs[1]['score']['cp'])
             @property
             def pv3_eval(self):
-                return int(self.move_analysis['pvs'][2]['score']['cp'])
+                return int_or_none(self.pvs[2]['score']['cp'])
             @property
             def pv4_eval(self):
-                return int(self.move_analysis['pvs'][3]['score']['cp'])
+                return int_or_none(self.pvs[3]['score']['cp'])
             @property
             def pv5_eval(self):
-                return int(self.move_analysis['pvs'][4]['score']['cp'])
+                return int_or_none(self.pvs[4]['score']['cp'])
             @property
             def played_eval(self):
-                return int(self.move_analysis['cr']['played_eval'])
+                return int_or_none(self.move_analysis['cr']['played_eval'])
                 #Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
             @property
             def played_rank(self):
@@ -160,13 +167,13 @@ def cr_report(gameids):
                 #Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
             @property
             def color(self):
-                if self.move_analysis['move'] % 2 == 0:
+                if self.move_analysis['move'] % 2 == 1:
                     return 'w'
                 else:
                     return 'b'
             @property
             def number(self):
-                return self.move_analysis['move']
+                return ((self.move_analysis['move']-1) // 2) + 1
 
         for gid, analysis in working_set.items():
             moves = []
@@ -205,6 +212,7 @@ def cr_report(gameids):
 
         evals = []
         for m in moves:
+            # print(f"{m.color},{m.number},{m.pv1_eval},{m.pv2_eval},{m.pv3_eval},{m.pv4_eval},{m.pv5_eval}")
             if m.color != color:
                 evals.append(-m.pv1_eval)
                 continue
@@ -285,6 +293,6 @@ def cr_report(gameids):
 
     def std_error(p, n):
         return math.sqrt(p*(1-p)/n)
-    
+
     working_set = get_analysed_game_pgns_from_db(gameids)
     a1(working_set, "test")

@@ -85,5 +85,27 @@ def cr_report(gameids):
     from sonder.utils import cr_report
     cr_report(gameids.split())
 
+@cr.command(name='game-cps-debug')
+@click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')
+def cr_game_cps_debug(gameids):
+    """Simple tool to debug game cps. Compare this output to the output of the following commands run in a cr database:
+
+    sqlite> .mode csv
+    sqlite> .out moves.csv
+    sqlite> SELECT color, number, pv1_eval, pv2_eval, pv3_eval, pv4_eval, pv5_eval FROM move WHERE game_id='{game_id}' ORDER BY number ASC, color DESC;
+
+    """
+    from sonder.analysis.models import GameAnalysis
+    import itertools
+    for game_id in gameids.split():
+        ga = GameAnalysis.objects.get(game__lichess_id=game_id)
+        colors = itertools.cycle(["w", "b"])
+        for color, move, a in zip(colors, range(1024), ga.analysis):
+            s = [pov['score']['cp'] for pov in a['pvs']]
+            if move % 2 == 1:
+                move = move - 1
+            move = (move // 2) + 1
+            print(f"{color},{move},{s[0]},{s[1]},{s[2]},{s[3]},{s[4]}")
+
 if __name__ == '__main__':
     cli()
