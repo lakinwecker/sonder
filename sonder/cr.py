@@ -1,8 +1,8 @@
 from collections import defaultdict
 import subprocess
 import tempfile
-import crayons
 from tqdm import tqdm
+import click
 
 from sonder.analysis.models import (
     AnalysisSource,
@@ -46,8 +46,7 @@ def process_csv(taskname, filename,  callback):
 def color_move_to_ply(color, move):
     if color == 'w':
         return (move-1)*2+1
-    else:
-        return move*2
+    return move*2
 
 def import_cr_database(database, analysis_source, stockfish_version):
     with tempfile.TemporaryDirectory() as base_dir:
@@ -59,20 +58,23 @@ def import_cr_database(database, analysis_source, stockfish_version):
         # Load the player table and insert all players and store
         # a mapping from id to player
         players_by_old_id = {}
+
         def process_player(old_player_id, username):
             player, _ = Player.objects.get_or_create(username=username.strip())
             players_by_old_id[old_player_id] = player
         process_csv("Loading players", f"{base_dir}/player.csv", process_player)
-        print(crayons.green("✓ Players Loaded"))
+        click.secho("✓ Players Loaded", fg='green')
 
         players_by_lichess_game_id = defaultdict(lambda: dict((("w", None), ("b", None))))
+
         def process_gameplayer(_, lichess_id, color, player_id):
             player = players_by_old_id[player_id]
             players_by_lichess_game_id[lichess_id][color] = player
         process_csv("Loading Game Players", f"{base_dir}/gameplayer.csv", process_gameplayer)
-        print(crayons.green("✓ GamePlayers Loaded"))
+        click.secho("✓ GamePlayers Loaded", fg='green')
 
         game_analysis_completed = {}
+
         def process_game(game_id, completed):
             completed = completed == "1"
             game, _ = Game.objects.get_or_create(lichess_id=game_id.strip())
@@ -85,9 +87,10 @@ def import_cr_database(database, analysis_source, stockfish_version):
                 game.save()
             game_analysis_completed[game.lichess_id] = completed
         process_csv("Loading Games", f"{base_dir}/game.csv", process_game)
-        print(crayons.green("✓ Games Loaded"))
+        click.secho("✓ Games Loaded", fg='green')
 
         game_analysis = defaultdict(lambda: defaultdict(dict))
+
         def process_move(_,game_id,color,number,pv1_eval,pv2_eval,pv3_eval,pv4_eval,pv5_eval,played_eval,played_rank,nodes,masterdb_matches):
             analysis = game_analysis[game_id]
             ply =  color_move_to_ply(color, int(number))
@@ -106,7 +109,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
                 'masterdb_matches': masterdb_matches,
             })
         process_csv("Loading Moves", f"{base_dir}/move.csv", process_move)
-        print(crayons.green("✓ Moves Loaded"))
+        click.secho("✓ Moves Loaded", fg='green')
 
         analysis_source, _ = AnalysisSource.objects.get_or_create(name=analysis_source)
         progress = tqdm(game_analysis.items(), "Processing analysis", leave=False)
@@ -123,6 +126,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
             )
             moves  = list(sorted([(int(k), v) for k,v in cr_analysis.items()]))
             last_move_number, _ = moves[-1]
+
             def empty_move(num):
                 return {
                     'move': num,
@@ -139,26 +143,17 @@ def import_cr_database(database, analysis_source, stockfish_version):
                     "masterdb_matches": cr_move_analysis['masterdb_matches'],
                 })
 
-                def add_pv(name):
-                    move_analysis["pvs"].append({
-                        "pv": "",
-                        "score": { "cp": cr_move_analysis[name], "mate": None },
-                    })
-                add_pv("pv1_eval")
-                add_pv("pv2_eval")
-                add_pv("pv3_eval")
-                add_pv("pv4_eval")
-                add_pv("pv5_eval")
+                def pv(cp):
+                    return {"pv": "", "score": { "cp": cp, "mate": None }}
+                move_analysis['pvs'] = [
+                    pv(cr_move_analysis["pv1_eval"]),
+                    pv(cr_move_analysis["pv2_eval"]),
+                    pv(cr_move_analysis["pv3_eval"]),
+                    pv(cr_move_analysis["pv4_eval"]),
+                    pv(cr_move_analysis["pv5_eval"])
+                ]
 
             game_analysis.analysis = sonder_analysis
             game_analysis.save()
         progress.close()
-        print(crayons.green("✓ Analysis processed"))
-
-
-
-
-
-
-
-
+        click.secho("✓ Analysis Loaded", fg='green')

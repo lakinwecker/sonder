@@ -21,4 +21,4 @@ def get_game_pgns(game_ids):
     print(body)
     url = 'https://lichess.org/games/export/_ids'
     response = requests.post(url, headers=headers, data=body)
-    return response.text.split("\n\n\n")
+    return response.text
