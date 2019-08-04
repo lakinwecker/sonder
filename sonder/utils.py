@@ -128,69 +128,56 @@ def cr_report(gameids):
         p = json.loads('{"book_depth": 10,"forced_move_thresh": 50,"unclear_pos_thresh": 100,"undecided_pos_thresh": 200,"losing_pos_thresh": 500,"exclude_forced": true,"include_only_unclear": true,"exclude_flat": true,"max_cpl": 501}')
         by_player = defaultdict(PgnSpyResult)
         by_game = defaultdict(PgnSpyResult)
-        
-        class Move:
-            def __init__(self, move_analysis, next_move_analysis, move_ply):
-                self.move_analysis = move_analysis
-                self.next_move_analysis = next_move_analysis
-                self.move_ply = move_ply
 
+        class Move:
+            def __init__(self, move_analysis):
+                self.move_analysis = move_analysis
             @property
+            #TODO: change cp to account for mates if present (cp_to_score from CR)
             def pv1_eval(self):
-                return int(move_analysis[0]['score']['cp'])
+                return int(self.move_analysis['pvs'][0]['score']['cp'])
             @property
             def pv2_eval(self):
-                return int(move_analysis[1]['score']['cp'])
+                return int(self.move_analysis['pvs'][1]['score']['cp'])
             @property
             def pv3_eval(self):
-                return int(move_analysis[2]['score']['cp'])
+                return int(self.move_analysis['pvs'][2]['score']['cp'])
             @property
             def pv4_eval(self):
-                return int(move_analysis[3]['score']['cp'])
+                return int(self.move_analysis['pvs'][3]['score']['cp'])
             @property
             def pv5_eval(self):
-                return int(move_analysis[4]['score']['cp'])
+                return int(self.move_analysis['pvs'][4]['score']['cp'])
             @property
             def played_eval(self):
-                try:
-                    return int(next_move_analysis[0]['score']['cp'])
-                except TypeError:
-                    return 0
+                return int(self.move_analysis['cr']['played_eval'])
                 #Look up which move they played, if it's in the pv list then use that eval, if not, look at the pv[0] from the next move
             @property
             def played_rank(self):
-                for i, pv_eval in enumerate([self.pv1_eval, self.pv2_eval, self.pv3_eval, self.pv4_eval, self.pv5_eval]):
-                    if pv_eval == self.played_eval:
-                        return i+1
-                    else:
-                        return 6
+                if self.move_analysis['cr']['played_rank'] == "":
+                    return None
+                return int(self.move_analysis['cr']['played_rank'])
                 #Look up which move they played, if it's in the pv list us it, if it's not there, use len(pvs)+1
             @property
             def color(self):
-                if self.move_ply % 2 == 0:
+                if self.move_analysis['move'] % 2 == 0:
                     return 'w'
                 else:
                     return 'b'
             @property
             def number(self):
-                return (self.move_ply+2)//2
+                return self.move_analysis['move']
 
         for gid, analysis in working_set.items():
             moves = []
-            for i in range(len(analysis)):
-                move_ply = i
-                move_analysis = analysis[i]
-                try:
-                    next_move_analysis = analysis[i+1]
-                except IndexError:
-                    next_move_analysis = None
-                moves.append(Move(move_analysis, next_move_analysis, move_ply))
-                #print(gid, Move(move_analysis).pv1_eval)
+            for move_analysis in analysis:
+                #print(move_analysis['pvs'][0]['score']['cp'])
+                moves.append(Move(move_analysis))
             working_set[gid] = moves
+            #print(moves[0].pv1_eval, moves[1].pv1_eval)
 
 
         for gid, moves in working_set.items():
-
             a1_game(gid, p, by_player, by_game, moves, 'w', Game.objects.get(lichess_id=gid).white_player)
             a1_game(gid, p, by_player, by_game, moves, 'b', Game.objects.get(lichess_id=gid).black_player)
 
@@ -211,46 +198,13 @@ def cr_report(gameids):
                 fout.write('\n')
         print(f'Wrote report on x games to "{out_path}"')
 
-    def a1_game(gid, p, by_player, by_game, analysis, color, player):
-        class Move():
-            def __init__(self, game, color, number, pv1_eval, pv2_eval, pv3_eval, pv4_eval, pv5_eval, played_eval, played_rank, nodes):
-                self.game = game
-                self.color = color
-                self.number = number
-                self.pv1_eval = pv1_eval
-                self.pv2_eval = pv2_eval
-                self.pv3_eval = pv3_eval
-                self.pv4_eval = pv4_eval
-                self.pv5_eval = pv5_eval
-                self.played_eval = played_eval
-                self.played_rank = played_rank
-                self.nodes = nodes
-        moves = []
-        for n, move in enumerate(analysis):
-            move_color = "w" if n%2==0 else "b"
-            Move(gid, move_color, n//2,\
-             move[0]['score']['cp'],\
-             move[1]['score']['cp'],\
-             move[2]['score']['cp'],\
-             move[3]['score']['cp'],\
-             move[4]['score']['cp'],\
-             )
-
-"""Move.create(game=game_obj, color=color, number=board.fullmove_number, \
-pv1_eval=evals.get(1), pv2_eval=evals.get(2), pv3_eval=evals.get(3), \
-pv4_eval=evals.get(4), pv5_eval=evals.get(5), \
-played_rank=played_index, played_eval=played_eval
-
-[{'pv': '', 'nodes': '4501294', 'score': {'cp': '76', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '46', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '46', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '38', 'mate': None}}, {'pv': '', 'nodes': '4501294', 'score': {'cp': '39', 'mate': None}}]
-            """
-
+    def a1_game(gid, p, by_player, by_game, moves, color, player):
         r = PgnSpyResult()
         r.game_list.append(gid)
-      #  moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
+#  moves = list(Move.select().where(Move.game == game_obj).order_by(Move.number, -Move.color))
 
         evals = []
         for m in moves:
-            #print(m.pv1_eval)
             if m.color != color:
                 evals.append(-m.pv1_eval)
                 continue
