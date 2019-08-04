@@ -53,7 +53,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
     with tempfile.TemporaryDirectory() as base_dir:
         # Export the tables that we need
         lines = cr_export_sql_template.format(base_dir=base_dir)
-        sqlite3 = subprocess.Popen(["sqlite3", database], stdin=subprocess.PIPE)
+        sqlite3 = subprocess.Popen(["/usr/bin/sqlite3", database], stdin=subprocess.PIPE)
         sqlite3.communicate(bytes(lines, "utf-8"))
 
         # Load the player table and insert all players and store
