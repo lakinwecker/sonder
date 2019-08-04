@@ -9,7 +9,7 @@ def get_season_game_ids(league, season, rounds=None):
     for roundnum in rounds:
         url = f'https://www.lichess4545.com/{league}/season/{season}/round/{roundnum}/pairings/'
         response = requests.get(url)
-        ids = re.findall(r'en\.lichess\.org\/([\w]+)', response.txt)
+        ids = re.findall(r'en\.lichess\.org\/([\w]+)', response.content.decode("utf-8"))
         results.extend([(league, season, roundnum, id) for id in ids])
     return results
 
