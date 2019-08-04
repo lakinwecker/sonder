@@ -2,4 +2,4 @@
 from .sonder import pgntouci
 
 if __name__ == '__main__':
-    main() # pylint: disable=no-value-for-parameter
+    pgntouci() # pylint: disable=no-value-for-parameter
