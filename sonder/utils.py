@@ -1,6 +1,8 @@
 import chess.pgn
 import io
 
+from .analysis.models import Player, Game
+
 def pgn_to_uci(pgn):
     """A method that should take a PGN string and return a list of uci moves.
     """
@@ -11,8 +13,11 @@ def pgn_to_uci(pgn):
         moves.append(move.uci())
     return moves
 
-def import_pgn_to_db(pgn, encoding="ISO-8859-1"):
-    pgn_in = open(pgn, encoding=encoding)
+def import_pgn_file_to_db(pgn_file, encoding="ISO-8859-1"):
+    pgn_in = open(pgn_file, encoding=encoding)
+    return import_pgn_to_db(pgn_in)
+
+def import_pgn_to_db(pgn_in):
     game = chess.pgn.read_game(pgn_in)
     while game:
         insert_game_into_db(game)

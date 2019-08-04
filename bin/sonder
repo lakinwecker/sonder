@@ -45,12 +45,19 @@ def pgn_to_uci(pgn):
 def league():
     pass
 
-@league.command(name='download_games')
+@league.command(name='download-games')
 @click.option('--league', required=True, help='team4545, lonewolf')
-@click.option('--season', required=True, help='number for team4545, number with or without u1800 for lonewolf')
-def league_download_games(league, season):
-    from sonder.league.utils import get_season_game_ids
-    print(get_season_game_ids(league, season))
+@click.option('--season', help='number for team4545, number with or without u1800 for lonewolf')
+def league_download_games(league, season=None):
+    from sonder.league.utils import download_new_games
+    download_new_games(league, season)
+
+@league.command(name='get-season-ids')
+@click.option('--league', required=True, help='team4545, lonewolf')
+def league_get_season_ids(league):
+    from sonder.league.utils import get_season_ids_for_league
+    print(get_season_ids_for_league(league))
+
 
 #-------------------------------------------------------------------------------
 # Lichess Commands
@@ -59,11 +66,13 @@ def league_download_games(league, season):
 def lichess():
     pass
 
-@lichess.command(name='download_games')
+@lichess.command(name='download-games')
 @click.option('--gameids', required=True, help='List of Lichess game IDs', multiple='true')
 def lichess_download_games(gameids):
     from sonder.league.utils import get_game_pgns
-    print(get_game_pgns(gameids))
+    from sonder.utils import import_pgn_to_db
+    for pgn in get_game_pgns(gameids):
+        import_pgn_to_db(pgn, encoding="utf-8")
 
 #-------------------------------------------------------------------------------
 # Lichess Commands
