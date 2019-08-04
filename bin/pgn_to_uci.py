@@ -17,7 +17,7 @@ def main(pgn):
     load_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
     from sonder.utils import pgn_to_uci
-    print(" ".join(pgn_to_uci(open(pgn, "r").read()))
+    print(" ".join(pgn_to_uci(open(pgn, "r").read())))
 
 if __name__ == '__main__':
     main()
