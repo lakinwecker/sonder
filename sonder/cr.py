@@ -78,8 +78,8 @@ def import_cr_database(database, analysis_source, stockfish_version):
             game, _ = Game.objects.get_or_create(lichess_id=game_id.strip())
             players = players_by_lichess_game_id.get(game_id)
             if players:
-                assert players['w']
-                assert players['b']
+                if not players['w'] or not players['b']:
+                    raise AssertionError("Missing players")
                 game.white_player = players['w']
                 game.black_player = players['b']
                 game.save()
