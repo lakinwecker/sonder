@@ -1,3 +1,4 @@
+from collections import defaultdict
 import click
 import requests
 import re
@@ -73,6 +74,16 @@ def download_new_games(league, _season=None):
         pgns.extend(get_game_pgns(game_ids))
     click.secho(f"✓ Downloaded {len(pgns)} games pgns", fg='green')
 
+    skipped_games = defaultdict(int)
     for pgn in tqdm(pgns, "Processing PGNs", leave=False):
-        import_pgn_to_db(io.StringIO(pgn))
-    click.secho(f"✓ Imported {len(pgns)} games pgns", fg='green')
+        try:
+            import_pgn_to_db(io.StringIO(pgn))
+        except ValueError as e:
+            if str(e).startswith("unsupported variant:"):
+                skipped_games['unsupported variant'] += 1
+    error = 0
+    for reason, count in skipped_games.items():
+        error += count
+        click.secho(f"✘ Failed to import {count} games because {reason}", fg='red')
+
+    click.secho(f"✓ Imported {len(pgns)-error} game pgns", fg='green')
