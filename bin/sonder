@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import click
+import django
 import inspect
 import os
 import os.path
 import sys
-import django
 
 from dotenv import load_dotenv
 
@@ -37,6 +37,26 @@ def pgn_import(pgn, encoding):
 def pgn_to_uci(pgn):
     from sonder.utils import pgn_to_uci
     print(' '.join(pgn_to_uci(open(pgn, 'r').read())))
+
+@pgn.command(name='export')
+@click.option('--player', help='Player we are interested in')
+@click.option('--time_control', help='TimeControl to export')
+def pgn_export(player=None, time_control=None):
+    from django.db.models import Q
+    from sonder.analysis.models import Player, Game
+    qs = Game.objects.exclude(source_pgn='')
+    if player:
+        try:
+            username = Player.normalize_username(player)
+            player = Player.objects.get(username=username)
+        except Player.DoesNotExist:
+            print(f"Unable to find player: {player}")
+            sys.exit()
+        qs = qs.filter(Q(white_player=player) | Q(black_player=player))
+    if time_control:
+        qs = qs.filter(time_control=time_control)
+    for game in qs:
+        print(f"""{game.source_pgn}\n\n\n""")
 
 #-------------------------------------------------------------------------------
 # League Commands

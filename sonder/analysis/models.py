@@ -24,6 +24,13 @@ class Tag(models.Model):
 
 class Player(models.Model):
     username = models.CharField(max_length=255, unique=True)
+
+    @classmethod
+    def normalize_username(cls, username):
+        if not username:
+            return username
+        return username.strip().lower()
+
     def __str__(self):
         return self.username
 
