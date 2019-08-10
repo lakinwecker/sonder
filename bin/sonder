@@ -29,8 +29,8 @@ def pgn():
 @click.option('--pgn', required=True, help='The pgn of game(s) to be added to database')
 @click.option('--encoding', default='ISO-8859-1', required=False, help='Encoding of the file')
 def pgn_import(pgn, encoding):
-    from sonder.utils import import_pgn_to_db
-    import_pgn_to_db(pgn, encoding=encoding)
+    from sonder.utils import import_pgn_file_to_db
+    import_pgn_file_to_db(pgn, encoding=encoding)
 
 @pgn.command(name='to_uci')
 @click.option('--pgn', required=True, help='pgn to be converted to UCI moves')

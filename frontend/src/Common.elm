@@ -2,6 +2,7 @@ module Common exposing (..)
 
 import Array exposing (Array, fromList, get, length)
 import Browser
+import Browser.Navigation as Nav
 import Element exposing (..)
 import Http
 import List exposing (concat)
@@ -31,8 +32,14 @@ defaultUserPreferences =
 
 
 type PageStatus
-    = Failure
-    | Loading
+    = PageFailure String
+    | PageLoading
+    | PageLoaded
+
+
+type RedirectStatus
+    = RedirectFailure String
+    | RedirectLoading
 
 
 type User
@@ -42,6 +49,13 @@ type User
 
 type Username
     = Username String
+
+
+type alias Session =
+    { user : User
+    , key : Nav.Key
+    , device : Device
+    }
 
 
 defaultBackgroundColor =

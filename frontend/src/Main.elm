@@ -8,9 +8,10 @@ import Element exposing (..)
 import FontAwesome.Styles as FAStyles
 import Router
 import Common exposing (..)
-import Dashboard
 import Login
 import PlayerList
+import Http
+import Dashboard
 
 
 -- import Html exposing (..)
@@ -46,17 +47,19 @@ main =
 
 type CurrentPage
     = LoginPage Login.Model
-    | UnauthorizedPage
-    | HomePage
-    | DashboardPage Dashboard.Model
     | PlayerListPage PlayerList.Model
+    | DashboardPage Dashboard.Model
+
+
+
+-- TODO: add these in later
+--| UnauthorizedPage
+--| HomePage
 
 
 type alias Model =
-    { key : Nav.Key
-    , user : User
+    { session : Session
     , page : CurrentPage
-    , device : Device
     }
 
 
@@ -68,19 +71,20 @@ urlToPage url =
     in
         case route of
             Just Router.Login ->
-                ( LoginPage Login.init, Login.load )
+                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
 
             Just Router.Unauthorized ->
-                ( UnauthorizedPage, Cmd.none )
+                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
 
+            --( UnauthorizedPage, Cmd.none )
             Just Router.Dashboard ->
-                ( DashboardPage Dashboard.init, Dashboard.load )
+                ( DashboardPage Dashboard.init, Cmd.map GotDashboardMsg Dashboard.load )
 
             Just Router.PlayerList ->
-                ( PlayerListPage PlayerList.init, PlayerList.load )
+                ( PlayerListPage PlayerList.init, Cmd.map GotPlayerListMsg PlayerList.load )
 
             Nothing ->
-                ( HomePage, Cmd.none )
+                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
 
 
 init : BrowserSize -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -89,10 +93,13 @@ init flags url key =
         ( page, cmd ) =
             urlToPage url
     in
-        ( Model key
-            (Anonymous defaultUserPreferences)
+        ( Model
+            (Session
+                (Anonymous defaultUserPreferences)
+                key
+                (classifyDevice flags)
+            )
             page
-            (classifyDevice flags)
         , cmd
         )
 
@@ -104,23 +111,25 @@ init flags url key =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-    | GotLichessOAuthURL (Result Http.Error String)
-    | AuthStatus (Result Http.Error User)
+      --| AuthStatus (Result Http.Error User)
     | BrowserResize Int Int
+    | GotLoginMsg Login.Msg
+    | GotPlayerListMsg PlayerList.Msg
+    | GotDashboardMsg Dashboard.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        LinkClicked urlRequest ->
+    case ( msg, model.page ) of
+        ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    ( model, Nav.pushUrl model.session.key (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        UrlChanged url ->
+        ( UrlChanged url, _ ) ->
             let
                 ( page, cmd ) =
                     urlToPage url
@@ -129,37 +138,50 @@ update msg model =
                 , cmd
                 )
 
-        GotLichessOAuthURL result ->
-            case result of
-                Ok url ->
-                    ( model, Nav.load url )
+        --( AuthStatus result, _ ) ->
+        --case result of
+        --Ok user ->
+        --( { model | user = user }, Cmd.none )
+        --
+        --Err _ ->
+        --( { model | page = LoginPage { status = Failure } }, Cmd.none )
+        ( BrowserResize w h, _ ) ->
+            let
+                oldSession =
+                    model.session
 
-                Err _ ->
-                    ( { model | page = LoginPage { status = Failure } }, Cmd.none )
+                newSession =
+                    { oldSession | device = classifyDevice { width = w, height = h } }
+            in
+                ( { model | session = newSession }, Cmd.none )
 
-        AuthStatus result ->
-            case result of
-                Ok user ->
-                    ( { model | user = user }, Cmd.none )
+        ( GotLoginMsg subMsg, LoginPage subModel ) ->
+            Login.update subMsg subModel
+                |> updateWith LoginPage GotLoginMsg model
 
-                Err _ ->
-                    ( { model | page = LoginPage { status = Failure } }, Cmd.none )
+        ( GotPlayerListMsg subMsg, PlayerListPage subModel ) ->
+            PlayerList.update subMsg subModel
+                |> updateWith PlayerListPage GotPlayerListMsg model
 
-        BrowserResize w h ->
-            ( { model | device = classifyDevice { width = w, height = h } }, Cmd.none )
+        ( GotDashboardMsg subMsg, DashboardPage subModel ) ->
+            Dashboard.update subMsg subModel
+                |> updateWith DashboardPage GotDashboardMsg model
+
+        ( _, _ ) ->
+            -- Disregard messages that arrived for the wrong page.
+            ( model, Cmd.none )
+
+
+updateWith : (subModel -> CurrentPage) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toCurrentPage toMsg model ( subModel, subCmd ) =
+    ( { model | page = toCurrentPage subModel }
+    , Cmd.map toMsg subCmd
+    )
 
 
 
 {--
         _ ->
-            case model.page of
-                DashboardPage pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            (Dashboard.update msg pageModel)
-                    in
-                        ( { model | page = DashboardPage newPageModel }, cmd )
-
                 PlayerListPage pageModel ->
                     let
                         ( newPageModel, cmd ) =
@@ -189,28 +211,37 @@ subscriptions _ =
 -- VIEW
 
 
+viewPage : (subMsg -> Msg) -> (subModel -> Element subMsg) -> subModel -> Element Msg
+viewPage toMsg subView model =
+    let
+        body =
+            subView model
+    in
+        Element.map toMsg body
+
+
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Sonder"
-    , body =
-        [ FAStyles.css
-        , Element.layout
-            [ S.viewBackgroundForUser model.user ]
-            (case model.page of
-                HomePage ->
-                    S.homePage
+    let
+        viewFullPage toMsg subView subModel =
+            viewPage toMsg (S.fullPage model.session subView) subModel
+    in
+        { title = "Sonder"
+        , body =
+            [ FAStyles.css
+            , Element.layout
+                [ S.viewBackgroundForUser model.session.user ]
+                (case model.page of
+                    LoginPage pageModel ->
+                        viewPage GotLoginMsg Login.view pageModel
 
-                LoginPage pageModel ->
-                    Login.view pageModel
+                    DashboardPage pageModel ->
+                        viewFullPage GotDashboardMsg Dashboard.view pageModel
 
-                UnauthorizedPage ->
-                    S.unauthorizedPage
-
-                DashboardPage pageModel ->
-                    S.fullPage model Dashboard.view pageModel
-
-                PlayerListPage pageModel ->
-                    S.fullPage model PlayerList.view pageModel
-            )
-        ]
-    }
+                    --UnauthorizedPage ->
+                    --S.unauthorizedPage
+                    PlayerListPage pageModel ->
+                        viewFullPage GotPlayerListMsg PlayerList.view pageModel
+                )
+            ]
+        }

@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sonder.analysis',
     'sonder.frontend',
+    'graphene_django'
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/build/"),
 ]
 
+LOGIN_URL = "/"
+LOGIN_REDIRECT_URL = "/"
 LICHESS_OAUTH_CLIENT_ID = os.environ.get('LICHESS_OAUTH_CLIENT_ID', '')
 LICHESS_CLIENT_SECRET = os.environ.get('LICHESS_CLIENT_SECRET', '')
 AUTHLIB_OAUTH_CLIENTS = {
@@ -101,8 +104,9 @@ AUTHLIB_OAUTH_CLIENTS = {
         'refresh_token_url': None,
         'authorize_url': 'https://oauth.lichess.org/oauth/authorize',
         'api_base_url': 'https://lichess.org/api',
-        'client_kwargs': {
-            'scope': 'email:read',
-        }
+        'client_kwargs': { }
     }
+}
+GRAPHENE = {
+    'SCHEMA': 'sonder.analysis.schema.schema'
 }

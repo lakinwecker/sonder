@@ -1,5 +1,6 @@
 module Login exposing (..)
 
+import Browser.Navigation as Nav
 import Http
 import Json.Decode exposing (Decoder, field, string)
 import Element exposing (..)
@@ -11,13 +12,13 @@ import Common exposing (..)
 
 
 type alias Model =
-    { status : PageStatus
+    { status : RedirectStatus
     }
 
 
 init : Model
 init =
-    { status = Loading }
+    { status = RedirectLoading }
 
 
 load : Cmd Msg
@@ -38,11 +39,11 @@ view model =
     column [ centerY, centerX, spacing 0, padding 200, width fill ]
         [ S.logo
         , case model.status of
-            Loading ->
+            RedirectLoading ->
                 S.spinner
 
-            Failure ->
-                S.error "Unable to fetch login URL. Please try again"
+            RedirectFailure message ->
+                S.error message
         ]
 
 
@@ -52,9 +53,18 @@ view model =
 
 type Msg
     = GotLichessOAuthURL (Result Http.Error String)
-    | AuthStatus (Result Http.Error User)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotLichessOAuthURL result ->
+            case result of
+                Ok url ->
+                    ( model, Nav.load url )
+
+                Err _ ->
+                    ( { status = RedirectFailure "Unable to load Lichess OAuth Url"
+                      }
+                    , Cmd.none
+                    )

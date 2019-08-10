@@ -7,14 +7,6 @@ import Json.Decode.Extra exposing (when, andMap)
 import Http
 
 
-loadStatus : Cmd Msg
-loadStatus =
-    Http.get
-        { url = "/login/status"
-        , expect = Http.expectJson AuthStatus userFromStatus
-        }
-
-
 is : a -> a -> Bool
 is a b =
     a == b

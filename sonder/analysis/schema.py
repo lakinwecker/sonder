@@ -1,6 +1,13 @@
 """
 json schema schemas for our input/outputs
 """
+import graphene
+from graphene import relay, ObjectType
+from graphene_django.types import DjangoObjectType
+from graphene_django.filter import DjangoFilterConnectionField
+
+from .models import Player, Game
+
 # TODO: welp, this wasn't nearly as succinct as I was hoping. :P
 FishnetRequest = {
     "title": "FishnetRequest",
@@ -56,3 +63,31 @@ FishnetJob = {
         }
     }
 }
+
+
+class PlayerNode(DjangoObjectType):
+    class Meta:
+        model = Player
+        filter_fields = ['username']
+        interfaces = (relay.Node,)
+
+class GameNode(DjangoObjectType):
+    class Meta:
+        model = Game
+        filter_fields = [
+            'white_player__username',
+            'black_player__username',
+        ]
+        interfaces = (relay.Node,)
+
+class Query(ObjectType):
+    player = relay.Node.Field(PlayerNode)
+    players = DjangoFilterConnectionField(PlayerNode)
+
+    game = relay.Node.Field(GameNode)
+    games = DjangoFilterConnectionField(GameNode)
+
+    def resolve_games(self, info, **kwargs):
+        return Game.objects.all().select_related('white_player', 'black_player')
+
+schema = graphene.Schema(query=Query)

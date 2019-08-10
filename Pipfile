@@ -20,6 +20,8 @@ python-chess = "*"
 authlib = "*"
 rq = "*"
 tqdm = "*"
+graphene-django = "*"
+django-filter = "*"
 
 [requires]
 python_version = "3.7"

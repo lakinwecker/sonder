@@ -4,6 +4,7 @@ import Element exposing (..)
 import Common exposing (..)
 import List exposing (concat)
 import Styles as S
+import Http
 import Auth
 
 
@@ -14,7 +15,7 @@ type alias Model =
 
 init : Model
 init =
-    { status = Loading }
+    { status = PageLoading }
 
 
 view : Model -> User -> Element Msg
@@ -31,9 +32,21 @@ view pageModel user =
         )
 
 
+loadStatus : Cmd Msg
+loadStatus =
+    Http.get
+        { url = "/login/status"
+        , expect = Http.expectJson AuthStatus Auth.userFromStatus
+        }
+
+
 load : Cmd Msg
 load =
-    Auth.loadStatus
+    loadStatus
+
+
+type Msg
+    = AuthStatus (Result Http.Error User)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

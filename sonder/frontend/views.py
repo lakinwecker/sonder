@@ -1,13 +1,11 @@
-import json
-
 from django.shortcuts import render
 from django.urls import reverse
 from django.db import transaction
 from django.contrib.auth.models import User
 from django.contrib.auth import login as authLogin
 from django.http import (
-    HttpResponse,
-    HttpResponseRedirect
+    HttpResponseRedirect,
+    JsonResponse,
 )
 
 from authlib.django.client import OAuth
@@ -22,6 +20,8 @@ def fetch_token(name, request):
         user=request.user
     )
     return item.to_token()
+
+
 oauth = OAuth(fetch_token=fetch_token)
 oauth.register('lichess')
 
@@ -32,16 +32,17 @@ def index(request):
 def login(request):
     redirect_uri = request.build_absolute_uri(reverse('login.authorize'))
     response = oauth.lichess.authorize_redirect(request, redirect_uri)
-    return HttpResponse(json.dumps({'url': response.url}))
+    return JsonResponse({'url': response.url})
 
 @transaction.atomic
 def authorize(request):
     token = oauth.lichess.authorize_access_token(request)
-    response = oauth.lichess.get('/api/account/email', token=token)
-    email = response.json()['email']
+    response = oauth.lichess.get('/api/account', token=token)
+    result = response.json()
+    username = result['username']
 
     try:
-        user = User.objects.get(email=email)
+        user = User.objects.get(username=username)
     except User.DoesNotExist:
         return HttpResponseRedirect(reverse("login.unauthorized"))
 
@@ -61,11 +62,7 @@ def authorize(request):
 
 @jsonapi.api(None, UserLoginResult)
 def auth_status(request, _none):
-    if request.user.is_anonymous:
-        return {
-            "type": "anonymous",
-        }
-    elif request.user.is_authenticated:
+    if request.user.is_authenticated:
         user_preferences, _ = UserPreferences.objects.get_or_create(
             user=request.user
         )
@@ -77,3 +74,6 @@ def auth_status(request, _none):
             }
         }
 
+    return {
+        "type": "anonymous",
+    }

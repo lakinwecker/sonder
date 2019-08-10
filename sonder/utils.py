@@ -46,7 +46,7 @@ def insert_game_into_db(game):
             f"PGN expects game to have {b} as black, but db has {g.black_player} as black."
         )
     g.white_player = w
-    g.black_player = w
+    g.black_player = b
     g.time_control = game.headers['TimeControl']
     g.set_pgn(pgn_text)
     g.save()

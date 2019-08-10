@@ -110,11 +110,12 @@ button =
     ]
 
 
-spinner =
+spinnerBase extra =
     el
         (concat
             [ textBox
             , [ paddingXY 30 30, width fill ]
+            , extra
             ]
         )
         (el
@@ -126,6 +127,14 @@ spinner =
                 )
             )
         )
+
+
+spinner =
+    spinnerBase []
+
+
+fullPageSpinner =
+    spinnerBase [ height fill ]
 
 
 loginButton : Element msg
@@ -224,20 +233,18 @@ unauthorized =
         )
 
 
-fullPage model mainFunc pageModel =
+fullPage session mainFunc pageModel =
     column [ spacing 0, width fill, height fill ]
-        [ thinLogo
-        , (row [ width fill, height fill ]
-            [ nav model
-            , case model.user of
+        [ row [ width fill ] [ thinLogo ]
+        , row [ width fill, height fill ]
+            [ sidebar session
+            , case session.user of
                 Anonymous _ ->
-                    spinner
+                    fullPageSpinner
 
                 (AuthorizedUser _ _) as user ->
                     mainFunc pageModel user
             ]
-          )
-        , footer model.device
         ]
 
 
@@ -247,7 +254,6 @@ footer device =
         (concat
             [ footerFont
             , footerSize
-            , textBox
             , [ spacing 2, height shrink, width fill ]
             ]
         )
@@ -260,7 +266,12 @@ footer device =
 footerDevice : Device -> Element msg
 footerDevice device =
     el
-        (concat [ footerFont, footerSize, [ paddingXY 30 5 ] ])
+        (concat
+            [ footerFont
+            , footerSize
+            , [ paddingXY 5 5, width fill ]
+            ]
+        )
         (row []
             [ html
                 (Icon.viewStyled
@@ -283,18 +294,12 @@ footerDevice device =
         )
 
 
-nav model =
+nav session =
     column
-        (concat
-            [ textFont
-            , textBox
-            , [ height fill
-              , padding 30
-              , spacing 20
-              , Border.widthEach { bottom = 0, top = 0, left = 0, right = 2 }
-              ]
-            ]
-        )
+        [ height fill
+        , padding 30
+        , spacing 20
+        ]
         [ link
             []
             { url = "/players", label = text "Players" }
@@ -302,4 +307,19 @@ nav model =
         --text "Reports"
         --, text "Analysis"
         --, text "Tags"
+        ]
+
+
+sidebar session =
+    column
+        (concat
+            [ textFont
+            , textBox
+            , [ height fill
+              , Border.widthEach { bottom = 0, top = 0, left = 0, right = 2 }
+              ]
+            ]
+        )
+        [ row [ height fill ] [ nav session ]
+        , row [ width fill ] [ footer session.device ]
         ]
