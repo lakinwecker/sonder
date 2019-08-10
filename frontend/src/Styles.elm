@@ -184,7 +184,8 @@ viewBackgroundForUser u =
             viewBackground prefs.background
 
 
-homePage =
+splashPage : Session -> Element msg
+splashPage session =
     column [ centerY, centerX, spacing 0, padding 200 ]
         [ logo, intro ]
 
@@ -213,7 +214,8 @@ intro =
         )
 
 
-unauthorizedPage =
+unauthorizedPage : Session -> Element msg
+unauthorizedPage session =
     column [ centerY, centerX, spacing 0, padding 200 ]
         [ logo, unauthorized ]
 

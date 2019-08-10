@@ -8,10 +8,15 @@ import Element exposing (..)
 import FontAwesome.Styles as FAStyles
 import Router
 import Common exposing (..)
+import Http
+
+
+-- Pages
+
 import Login
 import PlayerList
-import Http
 import Dashboard
+import StaticPage
 
 
 -- import Html exposing (..)
@@ -47,15 +52,11 @@ main =
 
 
 type SubPageModel
-    = LoginModel Login.Model
+    = SplashModel StaticPage.Model
+    | LoginModel Login.Model
     | PlayerListModel PlayerList.Model
     | DashboardModel Dashboard.Model
-
-
-
--- TODO: add these in later
---| UnauthorizedPage
---| HomePage
+    | UnauthorizedModel StaticPage.Model
 
 
 type alias Model =
@@ -64,10 +65,24 @@ type alias Model =
     }
 
 
+splashPage =
+    StaticPage.page
+        S.splashPage
+        GotSplashMsg
+        SplashModel
+
+
 loginPage =
     Login.page
         GotLoginMsg
         LoginModel
+
+
+unauthorizedPage =
+    StaticPage.page
+        S.unauthorizedPage
+        GotUnauthorizedMsg
+        UnauthorizedModel
 
 
 dashboardPage =
@@ -102,11 +117,14 @@ urlToPage url =
             Router.parse Router.routeParser url
     in
         case route of
+            Just Router.Splash ->
+                subPageInit splashPage
+
             Just Router.Login ->
                 subPageInit loginPage
 
             Just Router.Unauthorized ->
-                subPageInit loginPage
+                subPageInit unauthorizedPage
 
             Just Router.Dashboard ->
                 subPageInit dashboardPage
@@ -144,9 +162,11 @@ type Msg
     | UrlChanged Url.Url
       --| AuthStatus (Result Http.Error User)
     | BrowserResize Int Int
+    | GotSplashMsg StaticPage.Msg
     | GotLoginMsg Login.Msg
     | GotPlayerListMsg PlayerList.Msg
     | GotDashboardMsg Dashboard.Msg
+    | GotUnauthorizedMsg StaticPage.Msg
 
 
 subPageUpdate :
@@ -207,7 +227,7 @@ update msg model =
             subPageUpdate dashboardPage subMsg subModel model
 
         ( _, _ ) ->
-            -- Disregard messages that arrived for the wrong page.
+            -- Ignore by default
             ( model, Cmd.none )
 
 
@@ -236,12 +256,34 @@ subscriptions model =
 
             PlayerListModel subModel ->
                 subPageSubscriptions playerListPage subModel
+
+            _ ->
+                -- Ignore by default
+                Sub.none
           )
         ]
 
 
 
 -- VIEW
+
+
+subPageView :
+    SubPage subMsg subModel
+    -> subModel
+    -> Session
+    -> Element Msg
+subPageView subPage pageModel session =
+    viewPage subPage.msg subPage.view pageModel session
+
+
+subPageFullView :
+    SubPage subMsg subModel
+    -> subModel
+    -> Session
+    -> Element Msg
+subPageFullView subPage subModel session =
+    viewPage subPage.msg (S.fullPage subPage.view) subModel session
 
 
 viewPage : (subMsg -> Msg) -> (subModel -> Session -> Element subMsg) -> subModel -> Session -> Element Msg
@@ -255,24 +297,26 @@ viewPage toMsg subView model session =
 
 view : Model -> Browser.Document Msg
 view model =
-    let
-        viewFullPage toMsg subView subModel =
-            viewPage toMsg (S.fullPage subView) subModel model.session
-    in
-        { title = "Sonder"
-        , body =
-            [ FAStyles.css
-            , Element.layout
-                [ S.viewBackgroundForUser model.session.user ]
-                (case model.subModel of
-                    LoginModel pageModel ->
-                        viewPage GotLoginMsg Login.view pageModel model.session
+    { title = "Sonder"
+    , body =
+        [ FAStyles.css
+        , Element.layout
+            [ S.viewBackgroundForUser model.session.user ]
+            (case model.subModel of
+                SplashModel pageModel ->
+                    subPageView splashPage pageModel model.session
 
-                    DashboardModel pageModel ->
-                        viewFullPage GotDashboardMsg Dashboard.view pageModel
+                LoginModel pageModel ->
+                    subPageView loginPage pageModel model.session
 
-                    PlayerListModel pageModel ->
-                        viewFullPage GotPlayerListMsg PlayerList.view pageModel
-                )
-            ]
-        }
+                UnauthorizedModel pageModel ->
+                    subPageView unauthorizedPage pageModel model.session
+
+                DashboardModel pageModel ->
+                    subPageFullView dashboardPage pageModel model.session
+
+                PlayerListModel pageModel ->
+                    subPageFullView playerListPage pageModel model.session
+            )
+        ]
+    }

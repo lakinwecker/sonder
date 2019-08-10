@@ -1,10 +1,11 @@
 module Router exposing (..)
 
-import Url.Parser as URLParser exposing (Parser, (</>), int, map, oneOf, s, string)
+import Url.Parser as URLParser exposing (Parser, (</>), int, map, oneOf, s, string, top)
 
 
 type Route
-    = Login
+    = Splash
+    | Login
     | Unauthorized
     | Dashboard
     | PlayerList
@@ -13,7 +14,8 @@ type Route
 routeParser : Parser (Route -> a) a
 routeParser =
     oneOf
-        [ map Login (s "login")
+        [ map Splash top
+        , map Login (s "login")
         , map Dashboard (s "dashboard")
         , map PlayerList (s "players")
         , map Unauthorized (s "login" </> s "unauthorized")
