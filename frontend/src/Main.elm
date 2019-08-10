@@ -22,6 +22,7 @@ import Colors as C
 import Styles as S
 
 
+-- Setup all of our sub pages
 -- MAIN
 
 
@@ -45,10 +46,10 @@ main =
 -- MODEL
 
 
-type CurrentPage
-    = LoginPage Login.Model
-    | PlayerListPage PlayerList.Model
-    | DashboardPage Dashboard.Model
+type SubPageModel
+    = LoginModel Login.Model
+    | PlayerListModel PlayerList.Model
+    | DashboardModel Dashboard.Model
 
 
 
@@ -59,11 +60,42 @@ type CurrentPage
 
 type alias Model =
     { session : Session
-    , page : CurrentPage
+    , subModel : SubPageModel
     }
 
 
-urlToPage : Url.Url -> ( CurrentPage, Cmd Msg )
+loginPage =
+    Login.page
+        GotLoginMsg
+        LoginModel
+
+
+dashboardPage =
+    Dashboard.page
+        GotDashboardMsg
+        DashboardModel
+
+
+playerListPage =
+    PlayerList.page
+        GotPlayerListMsg
+        PlayerListModel
+
+
+type alias SubPage subMsg subModel =
+    SubPagePartial subMsg subModel Msg SubPageModel
+
+
+subPageInit :
+    SubPage subMsg subModel
+    -> ( SubPageModel, Cmd Msg )
+subPageInit subPage =
+    ( subPage.model subPage.init
+    , Cmd.map subPage.msg subPage.load
+    )
+
+
+urlToPage : Url.Url -> ( SubPageModel, Cmd Msg )
 urlToPage url =
     let
         route =
@@ -71,20 +103,19 @@ urlToPage url =
     in
         case route of
             Just Router.Login ->
-                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
+                subPageInit loginPage
 
             Just Router.Unauthorized ->
-                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
+                subPageInit loginPage
 
-            --( UnauthorizedPage, Cmd.none )
             Just Router.Dashboard ->
-                ( DashboardPage Dashboard.init, Cmd.map GotDashboardMsg Dashboard.load )
+                subPageInit dashboardPage
 
             Just Router.PlayerList ->
-                ( PlayerListPage PlayerList.init, Cmd.map GotPlayerListMsg PlayerList.load )
+                subPageInit playerListPage
 
             Nothing ->
-                ( LoginPage Login.init, Cmd.map GotLoginMsg Login.load )
+                subPageInit loginPage
 
 
 init : BrowserSize -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -118,9 +149,27 @@ type Msg
     | GotDashboardMsg Dashboard.Msg
 
 
+subPageUpdate :
+    SubPage subMsg subModel
+    -> subMsg
+    -> subModel
+    -> Model
+    -> ( Model, Cmd Msg )
+subPageUpdate subPage subMsg subModel model =
+    subPage.update subMsg subModel
+        |> updateWith subPage.model subPage.msg model
+
+
+updateWith : (subModel -> SubPageModel) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toCurrentPage toMsg model ( subModel, subCmd ) =
+    ( { model | subModel = toCurrentPage subModel }
+    , Cmd.map toMsg subCmd
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model.page ) of
+    case ( msg, model.subModel ) of
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
@@ -134,17 +183,10 @@ update msg model =
                 ( page, cmd ) =
                     urlToPage url
             in
-                ( { model | page = page }
+                ( { model | subModel = page }
                 , cmd
                 )
 
-        --( AuthStatus result, _ ) ->
-        --case result of
-        --Ok user ->
-        --( { model | user = user }, Cmd.none )
-        --
-        --Err _ ->
-        --( { model | page = LoginPage { status = Failure } }, Cmd.none )
         ( BrowserResize w h, _ ) ->
             let
                 oldSession =
@@ -155,67 +197,58 @@ update msg model =
             in
                 ( { model | session = newSession }, Cmd.none )
 
-        ( GotLoginMsg subMsg, LoginPage subModel ) ->
-            Login.update subMsg subModel
-                |> updateWith LoginPage GotLoginMsg model
+        ( GotLoginMsg subMsg, LoginModel subModel ) ->
+            subPageUpdate loginPage subMsg subModel model
 
-        ( GotPlayerListMsg subMsg, PlayerListPage subModel ) ->
-            PlayerList.update subMsg subModel
-                |> updateWith PlayerListPage GotPlayerListMsg model
+        ( GotPlayerListMsg subMsg, PlayerListModel subModel ) ->
+            subPageUpdate playerListPage subMsg subModel model
 
-        ( GotDashboardMsg subMsg, DashboardPage subModel ) ->
-            Dashboard.update subMsg subModel
-                |> updateWith DashboardPage GotDashboardMsg model
+        ( GotDashboardMsg subMsg, DashboardModel subModel ) ->
+            subPageUpdate dashboardPage subMsg subModel model
 
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
             ( model, Cmd.none )
 
 
-updateWith : (subModel -> CurrentPage) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
-updateWith toCurrentPage toMsg model ( subModel, subCmd ) =
-    ( { model | page = toCurrentPage subModel }
-    , Cmd.map toMsg subCmd
-    )
 
-
-
-{--
-        _ ->
-                PlayerListPage pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            (PlayerList.update msg pageModel)
-                    in
-                        ( { model | page = PlayerListPage newPageModel }, cmd )
-
-                LoginPage pageModel ->
-                    let
-                        ( newPageModel, cmd ) =
-                            (Login.update msg pageModel)
-                    in
-                        ( { model | page = LoginPage newPageModel }, cmd )
-
-                _ ->
-                    ( model, Cmd.none )
-        --}
 -- SUBSCRIPTIONS
 
 
+subPageSubscriptions :
+    SubPage subMsg subModel
+    -> subModel
+    -> Sub Msg
+subPageSubscriptions subPage subModel =
+    Sub.map subPage.msg (subPage.subscriptions subModel)
+
+
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Events.onResize BrowserResize
+subscriptions model =
+    Sub.batch
+        [ Events.onResize BrowserResize
+        , (case model.subModel of
+            LoginModel subModel ->
+                subPageSubscriptions loginPage subModel
+
+            DashboardModel subModel ->
+                subPageSubscriptions dashboardPage subModel
+
+            PlayerListModel subModel ->
+                subPageSubscriptions playerListPage subModel
+          )
+        ]
 
 
 
 -- VIEW
 
 
-viewPage : (subMsg -> Msg) -> (subModel -> Element subMsg) -> subModel -> Element Msg
-viewPage toMsg subView model =
+viewPage : (subMsg -> Msg) -> (subModel -> Session -> Element subMsg) -> subModel -> Session -> Element Msg
+viewPage toMsg subView model session =
     let
         body =
-            subView model
+            subView model session
     in
         Element.map toMsg body
 
@@ -224,23 +257,21 @@ view : Model -> Browser.Document Msg
 view model =
     let
         viewFullPage toMsg subView subModel =
-            viewPage toMsg (S.fullPage model.session subView) subModel
+            viewPage toMsg (S.fullPage subView) subModel model.session
     in
         { title = "Sonder"
         , body =
             [ FAStyles.css
             , Element.layout
                 [ S.viewBackgroundForUser model.session.user ]
-                (case model.page of
-                    LoginPage pageModel ->
-                        viewPage GotLoginMsg Login.view pageModel
+                (case model.subModel of
+                    LoginModel pageModel ->
+                        viewPage GotLoginMsg Login.view pageModel model.session
 
-                    DashboardPage pageModel ->
+                    DashboardModel pageModel ->
                         viewFullPage GotDashboardMsg Dashboard.view pageModel
 
-                    --UnauthorizedPage ->
-                    --S.unauthorizedPage
-                    PlayerListPage pageModel ->
+                    PlayerListModel pageModel ->
                         viewFullPage GotPlayerListMsg PlayerList.view pageModel
                 )
             ]

@@ -42,6 +42,17 @@ type RedirectStatus
     | RedirectLoading
 
 
+type alias SubPagePartial subMsgT subModelT msgT pageModelT =
+    { init : subModelT
+    , load : Cmd subMsgT
+    , view : subModelT -> Session -> Element subMsgT
+    , update : subMsgT -> subModelT -> ( subModelT, Cmd subMsgT )
+    , subscriptions : subModelT -> Sub subMsgT
+    , msg : subMsgT -> msgT
+    , model : subModelT -> pageModelT
+    }
+
+
 type User
     = AuthorizedUser Username UserPreferences
     | Anonymous UserPreferences

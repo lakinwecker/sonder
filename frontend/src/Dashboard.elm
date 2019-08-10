@@ -18,8 +18,8 @@ init =
     { status = PageLoading }
 
 
-view : Model -> User -> Element Msg
-view pageModel user =
+view : Model -> Session -> Element Msg
+view pageModel session =
     el
         (concat
             [ S.textFont, S.textBox, S.introSize, [ paddingXY 30 30, width fill, height fill ] ]
@@ -52,3 +52,35 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( model, Cmd.none )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- Grouping things together so we can refer to them more easily
+
+
+type alias Page msg pageModel =
+    SubPagePartial Msg Model msg pageModel
+
+
+page :
+    (Msg -> localMsg)
+    -> (Model -> pageModel)
+    -> Page localMsg pageModel
+page toMsg toModel =
+    { init = init
+    , load = load
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    , msg = toMsg
+    , model = toModel
+    }

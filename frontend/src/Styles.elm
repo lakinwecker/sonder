@@ -233,7 +233,7 @@ unauthorized =
         )
 
 
-fullPage session mainFunc pageModel =
+fullPage mainFunc pageModel session =
     column [ spacing 0, width fill, height fill ]
         [ row [ width fill ] [ thinLogo ]
         , row [ width fill, height fill ]
@@ -243,7 +243,7 @@ fullPage session mainFunc pageModel =
                     fullPageSpinner
 
                 (AuthorizedUser _ _) as user ->
-                    mainFunc pageModel user
+                    mainFunc pageModel session
             ]
         ]
 

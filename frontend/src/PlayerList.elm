@@ -30,7 +30,10 @@ loadStatus : Cmd Msg
 loadStatus =
     Http.get
         { url = "/login/status"
-        , expect = Http.expectJson AuthStatus Auth.userFromStatus
+        , expect =
+            Http.expectJson
+                AuthStatus
+                Auth.userFromStatus
         }
 
 
@@ -39,31 +42,38 @@ load =
     loadStatus
 
 
-view : Model -> User -> Element Msg
-view pageModel user =
+view : Model -> Session -> Element Msg
+view pageModel session =
     case pageModel.status of
         PageLoading ->
-            viewLoading pageModel user
+            viewLoading pageModel session
 
         -- TODO: Not appropriate
         PageFailure message ->
-            viewLoading pageModel user
+            viewLoading pageModel session
 
         -- TODO: Not appropriate
         PageLoaded ->
-            viewLoading pageModel user
+            viewLoading pageModel session
 
 
-viewLoading : Model -> User -> Element Msg
-viewLoading pageModel user =
+viewLoading : Model -> Session -> Element Msg
+viewLoading pageModel session =
     S.fullPageSpinner
 
 
-viewLoaded : Model -> User -> Element Msg
-viewLoaded pageModel user =
+viewLoaded : Model -> Session -> Element Msg
+viewLoaded pageModel session =
     el
         (concat
-            [ S.textFont, S.textBox, S.introSize, [ paddingXY 30 30, width fill, height fill ] ]
+            [ S.textFont
+            , S.textBox
+            , S.introSize
+            , [ paddingXY 30 30
+              , width fill
+              , height fill
+              ]
+            ]
         )
         (column [ spacing 30 ]
             [ paragraph []
@@ -80,3 +90,35 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( model, Cmd.none )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- Grouping things together so we can refer to them more easily
+
+
+type alias Page msg pageModel =
+    SubPagePartial Msg Model msg pageModel
+
+
+page :
+    (Msg -> localMsg)
+    -> (Model -> pageModel)
+    -> Page localMsg pageModel
+page toMsg toModel =
+    { init = init
+    , load = load
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    , msg = toMsg
+    , model = toModel
+    }

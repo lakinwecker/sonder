@@ -34,8 +34,8 @@ loginURLDecoder =
     field "url" string
 
 
-view : Model -> Element Msg
-view model =
+view : Model -> Session -> Element Msg
+view model session =
     column [ centerY, centerX, spacing 0, padding 200, width fill ]
         [ S.logo
         , case model.status of
@@ -68,3 +68,35 @@ update msg model =
                       }
                     , Cmd.none
                     )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- Grouping things together so we can refer to them more easily
+
+
+type alias Page msg pageModel =
+    SubPagePartial Msg Model msg pageModel
+
+
+page :
+    (Msg -> localMsg)
+    -> (Model -> pageModel)
+    -> Page localMsg pageModel
+page toMsg toModel =
+    { init = init
+    , load = load
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    , msg = toMsg
+    , model = toModel
+    }
