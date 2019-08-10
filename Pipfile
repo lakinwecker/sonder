@@ -7,7 +7,7 @@ verify_ssl = true
 prospector = "*"
 
 [packages]
-django = "==2.2.3"
+django = "==2.2.*"
 psycopg2 = "*"
 honcho = "*"
 gunicorn = "*"
