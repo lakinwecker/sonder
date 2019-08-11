@@ -2,32 +2,12 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object exposing (GameNode(..), GameNodeConnection(..), GameNodeEdge(..), PageInfo(..), PlayerNode(..), PlayerNodeConnection(..), PlayerNodeEdge(..))
+module Sonder.Object exposing (Game(..), Player(..))
 
 
-type GameNode
-    = GameNode
+type Game
+    = Game
 
 
-type GameNodeConnection
-    = GameNodeConnection
-
-
-type GameNodeEdge
-    = GameNodeEdge
-
-
-type PageInfo
-    = PageInfo
-
-
-type PlayerNode
-    = PlayerNode
-
-
-type PlayerNodeConnection
-    = PlayerNodeConnection
-
-
-type PlayerNodeEdge
-    = PlayerNodeEdge
+type Player
+    = Player

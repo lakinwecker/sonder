@@ -9,14 +9,9 @@ type alias Model =
     {}
 
 
-init : Model
-init =
-    {}
-
-
-load : Cmd Msg
-load =
-    Cmd.none
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( {}, Cmd.none )
 
 
 view : (Session -> Element Msg) -> Model -> Session -> Element Msg
@@ -57,7 +52,6 @@ page :
     -> Page localMsg pageModel
 page content toMsg toModel =
     { init = init
-    , load = load
     , view = view content
     , update = update
     , subscriptions = subscriptions

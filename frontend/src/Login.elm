@@ -16,9 +16,11 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { status = RedirectLoading }
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { status = RedirectLoading }
+    , load
+    )
 
 
 load : Cmd Msg
@@ -93,7 +95,6 @@ page :
     -> Page localMsg pageModel
 page toMsg toModel =
     { init = init
-    , load = load
     , view = view
     , update = update
     , subscriptions = subscriptions

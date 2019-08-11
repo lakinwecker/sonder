@@ -17,16 +17,18 @@ userType =
     field "type" string
 
 
+anonymousUser : User
+anonymousUser =
+    Anonymous
+        { background = (getBackground 0) }
+
+
 userFromStatus : Decoder User
 userFromStatus =
     oneOf
         [ when userType
             (is "anonymous")
-            (succeed
-                (Anonymous
-                    { background = (getBackground 0) }
-                )
-            )
+            (succeed anonymousUser)
         , when userType
             (is "authorized")
             (succeed authorizedUserFromDict

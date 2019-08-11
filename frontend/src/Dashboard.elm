@@ -13,9 +13,11 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { status = PageLoading }
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { status = PageLoading }
+    , loadStatus
+    )
 
 
 view : Model -> Session -> Element Msg
@@ -38,11 +40,6 @@ loadStatus =
         { url = "/login/status"
         , expect = Http.expectJson AuthStatus Auth.userFromStatus
         }
-
-
-load : Cmd Msg
-load =
-    loadStatus
 
 
 type Msg
@@ -77,7 +74,6 @@ page :
     -> Page localMsg pageModel
 page toMsg toModel =
     { init = init
-    , load = load
     , view = view
     , update = update
     , subscriptions = subscriptions

@@ -1,41 +1,43 @@
 module Main exposing (..)
 
-import Array exposing (Array, fromList, get, length)
+import Array
+    exposing
+        ( Array
+        , fromList
+        , get
+        , length
+        )
+import Auth
 import Browser
-import Browser.Navigation as Nav
 import Browser.Events as Events
+import Browser.Navigation as Nav
+import Common exposing (..)
 import Element exposing (..)
 import FontAwesome.Styles as FAStyles
-import Router
-import Common exposing (..)
 import Http
-
-
--- Pages
-
-import Login
-import PlayerList
-import Dashboard
-import StaticPage
-
-
--- import Html exposing (..)
-
 import List exposing (concat)
 import Url
+
+
+-- Sonder Stuff
+
 import Colors as C
+import Dashboard
+import Login
+import PlayerList
+import Router
+import StaticPage
 import Styles as S
 
 
--- Setup all of our sub pages
 -- MAIN
 
 
-type alias BrowserSize =
-    { width : Int, height : Int }
+type alias Flags =
+    { width : Int, height : Int, csrfToken : String }
 
 
-main : Program BrowserSize Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -49,6 +51,7 @@ main =
 
 
 -- MODEL
+-- Setup all of our sub pages
 
 
 type SubPageModel
@@ -103,53 +106,70 @@ type alias SubPage subMsg subModel =
 
 subPageInit :
     SubPage subMsg subModel
+    -> Session
     -> ( SubPageModel, Cmd Msg )
-subPageInit subPage =
-    ( subPage.model subPage.init
-    , Cmd.map subPage.msg subPage.load
-    )
+subPageInit subPage session =
+    let
+        ( subModel, subMsg ) =
+            subPage.init session
+    in
+        ( subPage.model subModel
+        , Cmd.map subPage.msg subMsg
+        )
 
 
-urlToPage : Url.Url -> ( SubPageModel, Cmd Msg )
-urlToPage url =
+urlToPage : Url.Url -> Session -> ( SubPageModel, Cmd Msg )
+urlToPage url session =
     let
         route =
             Router.parse Router.routeParser url
     in
         case route of
             Just Router.Splash ->
-                subPageInit splashPage
+                subPageInit splashPage session
 
             Just Router.Login ->
-                subPageInit loginPage
+                subPageInit loginPage session
 
             Just Router.Unauthorized ->
-                subPageInit unauthorizedPage
+                subPageInit unauthorizedPage session
 
             Just Router.Dashboard ->
-                subPageInit dashboardPage
+                subPageInit dashboardPage session
 
             Just Router.PlayerList ->
-                subPageInit playerListPage
+                subPageInit playerListPage session
 
             Nothing ->
-                subPageInit loginPage
+                subPageInit loginPage session
 
 
-init : BrowserSize -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+loadAuthStatus : Cmd Msg
+loadAuthStatus =
+    Http.get
+        { url = "/login/status"
+        , expect = Http.expectJson GotAuthStatus Auth.userFromStatus
+        }
+
+
+init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        ( page, cmd ) =
-            urlToPage url
-    in
-        ( Model
-            (Session
+        session =
+            Session
                 (Anonymous defaultUserPreferences)
                 key
                 (classifyDevice flags)
-            )
-            page
-        , cmd
+                flags.csrfToken
+
+        ( page, cmd ) =
+            urlToPage url session
+    in
+        ( Model session page
+        , Cmd.batch
+            [ cmd
+            , loadAuthStatus
+            ]
         )
 
 
@@ -160,13 +180,13 @@ init flags url key =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-      --| AuthStatus (Result Http.Error User)
     | BrowserResize Int Int
     | GotSplashMsg StaticPage.Msg
     | GotLoginMsg Login.Msg
     | GotPlayerListMsg PlayerList.Msg
     | GotDashboardMsg Dashboard.Msg
     | GotUnauthorizedMsg StaticPage.Msg
+    | GotAuthStatus (Result Http.Error User)
 
 
 subPageUpdate :
@@ -180,7 +200,12 @@ subPageUpdate subPage subMsg subModel model =
         |> updateWith subPage.model subPage.msg model
 
 
-updateWith : (subModel -> SubPageModel) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith :
+    (subModel -> SubPageModel)
+    -> (subMsg -> Msg)
+    -> Model
+    -> ( subModel, Cmd subMsg )
+    -> ( Model, Cmd Msg )
 updateWith toCurrentPage toMsg model ( subModel, subCmd ) =
     ( { model | subModel = toCurrentPage subModel }
     , Cmd.map toMsg subCmd
@@ -193,7 +218,11 @@ update msg model =
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.session.key (Url.toString url) )
+                    ( model
+                    , Nav.pushUrl
+                        model.session.key
+                        (Url.toString url)
+                    )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -201,7 +230,7 @@ update msg model =
         ( UrlChanged url, _ ) ->
             let
                 ( page, cmd ) =
-                    urlToPage url
+                    urlToPage url model.session
             in
                 ( { model | subModel = page }
                 , cmd
@@ -214,6 +243,29 @@ update msg model =
 
                 newSession =
                     { oldSession | device = classifyDevice { width = w, height = h } }
+            in
+                ( { model | session = newSession }, Cmd.none )
+
+        ( GotAuthStatus result, _ ) ->
+            let
+                oldSession =
+                    model.session
+
+                newSession =
+                    case result of
+                        Ok user ->
+                            let
+                                a =
+                                    Debug.log "LoggedIn" user
+                            in
+                                { oldSession | user = user }
+
+                        Err _ ->
+                            let
+                                a =
+                                    Debug.log "Anonymous" "foo"
+                            in
+                                { oldSession | user = Auth.anonymousUser }
             in
                 ( { model | session = newSession }, Cmd.none )
 

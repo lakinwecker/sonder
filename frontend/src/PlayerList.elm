@@ -1,11 +1,31 @@
 module PlayerList exposing (..)
 
+-- elmgraphql
+
+import Graphql.Document as Document
+import Graphql.Http
+import Graphql.Operation exposing (RootQuery)
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+
+
+-- Sonder APi
+
+import Sonder.Interface
+import Sonder.Object
+import Sonder.Object.Player as Player
+import Sonder.Query as Query
+
+
+-- Others
+
+import RemoteData exposing (RemoteData)
 import Element exposing (..)
 import Common exposing (..)
 import List exposing (concat)
 import Styles as S
 import Http
 import Auth
+import Sonder.Interface
 
 
 type alias Player =
@@ -13,48 +33,69 @@ type alias Player =
     }
 
 
+type alias Response =
+    Maybe (List (Maybe Player))
+
+
+type alias ModelResponse =
+    RemoteData (Graphql.Http.Error Response) Response
+
+
 type alias Model =
-    { status : PageStatus
-    , players : List Player
+    { players : ModelResponse
     }
 
 
-init : Model
-init =
-    { status = PageLoading
-    , players = []
-    }
+query : SelectionSet Response RootQuery
+query =
+    -- We use `identity` to say that we aren't giving any
+    -- optional arguments to `hero`. Read this blog post for more:
+    -- https://medium.com/@zenitram.oiram/graphqelm-optional-arguments-in-a-language-without-optional-arguments-d8074ca3cf74
+    Query.players playerInfoSelection
 
 
-loadStatus : Cmd Msg
-loadStatus =
-    Http.get
-        { url = "/login/status"
-        , expect =
-            Http.expectJson
-                AuthStatus
-                Auth.userFromStatus
-        }
+playerInfoSelection : SelectionSet Player Sonder.Object.Player
+playerInfoSelection =
+    SelectionSet.map Player
+        Player.username
 
 
-load : Cmd Msg
-load =
-    loadStatus
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { players = RemoteData.Loading
+      }
+    , loadPlayers session
+    )
+
+
+loadPlayers : Session -> Cmd Msg
+loadPlayers session =
+    query
+        |> Graphql.Http.queryRequest "/analysis/graphql/"
+        |> Graphql.Http.withHeader "X-CSRFToken" session.csrfToken
+        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
 view : Model -> Session -> Element Msg
 view pageModel session =
-    case pageModel.status of
-        PageLoading ->
-            viewLoading pageModel session
+    let
+        a =
+            Debug.log "PlayersList.view" pageModel.players
+    in
+        case pageModel.players of
+            RemoteData.NotAsked ->
+                viewWaiting pageModel session
 
-        -- TODO: Not appropriate
-        PageFailure message ->
-            viewLoading pageModel session
+            RemoteData.Loading ->
+                viewLoading pageModel session
 
-        -- TODO: Not appropriate
-        PageLoaded ->
-            viewLoading pageModel session
+            -- TODO: Not appropriate
+            RemoteData.Failure message ->
+                viewError pageModel session
+
+            -- TODO: Not appropriate
+            RemoteData.Success players ->
+                viewLoaded pageModel session players
 
 
 viewLoading : Model -> Session -> Element Msg
@@ -62,8 +103,8 @@ viewLoading pageModel session =
     S.fullPageSpinner
 
 
-viewLoaded : Model -> Session -> Element Msg
-viewLoaded pageModel session =
+viewWaiting : Model -> Session -> Element Msg
+viewWaiting pageModel session =
     el
         (concat
             [ S.textFont
@@ -77,19 +118,63 @@ viewLoaded pageModel session =
         )
         (column [ spacing 30 ]
             [ paragraph []
-                [ text "List of Players2"
+                [ text "error"
+                ]
+            ]
+        )
+
+
+viewError : Model -> Session -> Element Msg
+viewError pageModel session =
+    el
+        (concat
+            [ S.textFont
+            , S.textBox
+            , S.introSize
+            , [ paddingXY 30 30
+              , width fill
+              , height fill
+              ]
+            ]
+        )
+        (column [ spacing 30 ]
+            [ paragraph []
+                [ text "error"
+                ]
+            ]
+        )
+
+
+viewLoaded : Model -> Session -> Response -> Element Msg
+viewLoaded pageModel session players =
+    el
+        (concat
+            [ S.textFont
+            , S.textBox
+            , S.introSize
+            , [ paddingXY 30 30
+              , width fill
+              , height fill
+              ]
+            ]
+        )
+        (column [ spacing 30 ]
+            [ paragraph []
+                [ text "Loaded"
                 ]
             ]
         )
 
 
 type Msg
-    = AuthStatus (Result Http.Error User)
+    = GotResponse ModelResponse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotResponse players ->
+            ( { model | players = players }, Cmd.none )
 
 
 
@@ -115,7 +200,6 @@ page :
     -> Page localMsg pageModel
 page toMsg toModel =
     { init = init
-    , load = load
     , view = view
     , update = update
     , subscriptions = subscriptions

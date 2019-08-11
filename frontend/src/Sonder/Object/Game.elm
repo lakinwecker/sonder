@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.GameNode exposing (blackPlayer, id, lichessId, moves, movesBlur, movesEmt, movesMasterdbMatches, sourcePgn, timeControl, whitePlayer)
+module Sonder.Object.Game exposing (blackPlayer, id, lichessId, moves, movesBlur, movesEmt, movesMasterdbMatches, sourcePgn, timeControl, whitePlayer)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,62 +19,61 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-{-| The ID of the object.
--}
-id : SelectionSet Sonder.ScalarCodecs.Id Sonder.Object.GameNode
+{-| -}
+id : SelectionSet Sonder.ScalarCodecs.Id Sonder.Object.Game
 id =
     Object.selectionForField "ScalarCodecs.Id" "id" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecId |> .decoder)
 
 
 {-| -}
-lichessId : SelectionSet String Sonder.Object.GameNode
+lichessId : SelectionSet String Sonder.Object.Game
 lichessId =
     Object.selectionForField "String" "lichessId" [] Decode.string
 
 
 {-| -}
-whitePlayer : SelectionSet decodesTo Sonder.Object.PlayerNode -> SelectionSet (Maybe decodesTo) Sonder.Object.GameNode
+whitePlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe decodesTo) Sonder.Object.Game
 whitePlayer object_ =
     Object.selectionForCompositeField "whitePlayer" [] object_ (identity >> Decode.nullable)
 
 
 {-| -}
-blackPlayer : SelectionSet decodesTo Sonder.Object.PlayerNode -> SelectionSet (Maybe decodesTo) Sonder.Object.GameNode
+blackPlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe decodesTo) Sonder.Object.Game
 blackPlayer object_ =
     Object.selectionForCompositeField "blackPlayer" [] object_ (identity >> Decode.nullable)
 
 
 {-| -}
-timeControl : SelectionSet String Sonder.Object.GameNode
+timeControl : SelectionSet String Sonder.Object.Game
 timeControl =
     Object.selectionForField "String" "timeControl" [] Decode.string
 
 
 {-| -}
-sourcePgn : SelectionSet String Sonder.Object.GameNode
+sourcePgn : SelectionSet String Sonder.Object.Game
 sourcePgn =
     Object.selectionForField "String" "sourcePgn" [] Decode.string
 
 
 {-| -}
-moves : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.GameNode
+moves : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.Game
 moves =
     Object.selectionForField "(Maybe ScalarCodecs.JSONString)" "moves" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecJSONString |> .decoder |> Decode.nullable)
 
 
 {-| -}
-movesEmt : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.GameNode
+movesEmt : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.Game
 movesEmt =
     Object.selectionForField "(Maybe ScalarCodecs.JSONString)" "movesEmt" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecJSONString |> .decoder |> Decode.nullable)
 
 
 {-| -}
-movesBlur : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.GameNode
+movesBlur : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.Game
 movesBlur =
     Object.selectionForField "(Maybe ScalarCodecs.JSONString)" "movesBlur" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecJSONString |> .decoder |> Decode.nullable)
 
 
 {-| -}
-movesMasterdbMatches : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.GameNode
+movesMasterdbMatches : SelectionSet (Maybe Sonder.ScalarCodecs.JSONString) Sonder.Object.Game
 movesMasterdbMatches =
     Object.selectionForField "(Maybe ScalarCodecs.JSONString)" "movesMasterdbMatches" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecJSONString |> .decoder |> Decode.nullable)

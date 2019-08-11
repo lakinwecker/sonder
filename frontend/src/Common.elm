@@ -42,14 +42,13 @@ type RedirectStatus
     | RedirectLoading
 
 
-type alias SubPagePartial subMsgT subModelT msgT pageModelT =
-    { init : subModelT
-    , load : Cmd subMsgT
-    , view : subModelT -> Session -> Element subMsgT
-    , update : subMsgT -> subModelT -> ( subModelT, Cmd subMsgT )
-    , subscriptions : subModelT -> Sub subMsgT
-    , msg : subMsgT -> msgT
-    , model : subModelT -> pageModelT
+type alias SubPagePartial subMsg subModel msg pageModel =
+    { init : Session -> ( subModel, Cmd subMsg )
+    , view : subModel -> Session -> Element subMsg
+    , update : subMsg -> subModel -> ( subModel, Cmd subMsg )
+    , subscriptions : subModel -> Sub subMsg
+    , msg : subMsg -> msg
+    , model : subModel -> pageModel
     }
 
 
@@ -66,6 +65,7 @@ type alias Session =
     { user : User
     , key : Nav.Key
     , device : Device
+    , csrfToken : String
     }
 
 

@@ -250,8 +250,8 @@ fullPage mainFunc pageModel session =
         ]
 
 
-footer : Device -> Element msg
-footer device =
+footer : Session -> Element msg
+footer session =
     el
         (concat
             [ footerFont
@@ -260,7 +260,8 @@ footer device =
             ]
         )
         (row []
-            [ footerDevice device
+            [ footerDevice session.device
+            , footerUser session.user
             ]
         )
 
@@ -296,6 +297,31 @@ footerDevice device =
         )
 
 
+footerUser : User -> Element msg
+footerUser user =
+    el
+        (concat
+            [ footerFont
+            , footerSize
+            , [ paddingXY 5 5, width fill ]
+            ]
+        )
+        (row []
+            [ html
+                (Icon.viewStyled
+                    []
+                    (case user of
+                        Anonymous _ ->
+                            Solid.userSlash
+
+                        AuthorizedUser _ _ ->
+                            Solid.user
+                    )
+                )
+            ]
+        )
+
+
 nav session =
     column
         [ height fill
@@ -323,5 +349,5 @@ sidebar session =
             ]
         )
         [ row [ height fill ] [ nav session ]
-        , row [ width fill ] [ footer session.device ]
+        , footer session
         ]

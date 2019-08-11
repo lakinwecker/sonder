@@ -6,7 +6,7 @@ from graphene import relay, ObjectType
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .models import Player, Game
+from . import models
 
 # TODO: welp, this wasn't nearly as succinct as I was hoping. :P
 FishnetRequest = {
@@ -65,29 +65,29 @@ FishnetJob = {
 }
 
 
-class PlayerNode(DjangoObjectType):
+class Player(DjangoObjectType):
     class Meta:
-        model = Player
+        model = models.Player
         filter_fields = ['username']
-        interfaces = (relay.Node,)
 
-class GameNode(DjangoObjectType):
+class Game(DjangoObjectType):
     class Meta:
-        model = Game
+        model = models.Game
         filter_fields = [
             'white_player__username',
             'black_player__username',
         ]
-        interfaces = (relay.Node,)
 
 class Query(ObjectType):
-    player = relay.Node.Field(PlayerNode)
-    players = DjangoFilterConnectionField(PlayerNode)
+    players = graphene.List(Player)
+    games = graphene.List(Game)
 
-    game = relay.Node.Field(GameNode)
-    games = DjangoFilterConnectionField(GameNode)
+
+    def resolve_players(self, info, **kwargs):
+        return models.Player.objects.all()
+
 
     def resolve_games(self, info, **kwargs):
-        return Game.objects.all().select_related('white_player', 'black_player')
+        return models.Game.objects.all().select_related('white_player', 'black_player')
 
 schema = graphene.Schema(query=Query)
