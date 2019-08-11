@@ -11,6 +11,7 @@ import Random
 import String
 import Url
 import Graphql.Http
+import Router
 
 
 type UserBackground
@@ -45,8 +46,12 @@ type RedirectStatus
     | RedirectLoading
 
 
-type alias SubPagePartial subMsg subModel msg pageModel =
-    { init : Session -> ( subModel, Cmd subMsg )
+type NoArgs
+    = NoArgs
+
+
+type alias SubPagePartial initArgs subMsg subModel msg pageModel =
+    { init : Session -> initArgs -> ( subModel, Cmd subMsg )
     , view : subModel -> Session -> Element subMsg
     , update : subMsg -> subModel -> ( subModel, Cmd subMsg )
     , subscriptions : subModel -> Sub subMsg

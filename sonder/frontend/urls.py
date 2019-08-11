@@ -11,5 +11,6 @@ urlpatterns = [
     path('login/unauthorized', views.index, name='login.unauthorized'),
     path('dashboard', views.index, name='dashboard'),
     path('players', views.index, name='dashboard'),
+    path('players/<str:username>', views.index, name='dashboard'),
 ]
 

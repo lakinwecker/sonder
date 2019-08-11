@@ -26,12 +26,18 @@ import Styles as S
 import Http
 import Auth
 import Sonder.Interface
+import Router
 
 
 type alias Player =
     { username : String
-    , totalGames : String
+    , totalGames : Int
     }
+
+
+totalGamesStr : Player -> String
+totalGamesStr player =
+    String.fromInt player.totalGames
 
 
 type alias Response =
@@ -59,8 +65,8 @@ playerInfoSelection =
         Player.totalGames
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> NoArgs -> ( Model, Cmd Msg )
+init session _ =
     ( { players = RemoteData.Loading
       }
     , loadPlayers session
@@ -77,64 +83,55 @@ loadPlayers session =
 
 view : Model -> Session -> Element Msg
 view pageModel session =
-    case pageModel.players of
-        RemoteData.NotAsked ->
-            S.fullPageCog
-
-        RemoteData.Loading ->
-            S.fullPageSpinner
-
-        RemoteData.Failure message ->
-            errorMsgFromGraphQL message
-                |> S.error session
-
-        RemoteData.Success players ->
-            viewLoaded pageModel session players
+    S.remoteDataPage viewLoaded pageModel session pageModel.players
 
 
-viewPlayer : Maybe Player -> Element Msg
-viewPlayer maybePlayer =
-    case maybePlayer of
+maybeAttr :
+    (Player -> a)
+    -> (a -> Element Msg)
+    -> Maybe Player
+    -> Element Msg
+maybeAttr toA toElement player =
+    case player of
         Nothing ->
-            Element.none
+            none
 
-        Just player ->
-            el
-                []
-                (paragraph
-                    []
-                    [ text (player.username ++ player.totalGames)
-                    ]
-                )
+        Just p ->
+            toElement (toA p)
 
 
-viewPlayers : Response -> List (Element Msg)
-viewPlayers maybePlayers =
-    case maybePlayers of
-        Nothing ->
-            []
-
-        Just players ->
-            List.map viewPlayer players
+playerLink : Player -> Element Msg
+playerLink player =
+    link
+        []
+        { url = "/players/" ++ player.username, label = text player.username }
 
 
 viewLoaded : Model -> Session -> Response -> Element Msg
-viewLoaded pageModel session players =
-    el
-        (concat
-            [ S.textFont
-            , S.textBox
-            , S.introSize
-            , [ paddingXY 30 30
-              , width fill
-              ]
-            ]
-        )
-        (column [ spacing 30 ]
-            [ paragraph []
-                (viewPlayers players)
-            ]
-        )
+viewLoaded pageModel session maybePlayers =
+    case maybePlayers of
+        Nothing ->
+            none
+
+        Just players ->
+            table
+                []
+                { data = players
+                , columns =
+                    [ { header = S.tableHeader "Username"
+                      , width = fill
+                      , view =
+                            \person ->
+                                maybeAttr identity (S.tableCell playerLink) person
+                      }
+                    , { header = S.tableHeader "# Games"
+                      , width = fill
+                      , view =
+                            \person ->
+                                maybeAttr totalGamesStr (S.tableCell text) person
+                      }
+                    ]
+                }
 
 
 type Msg
@@ -162,7 +159,7 @@ subscriptions model =
 
 
 type alias Page msg pageModel =
-    SubPagePartial Msg Model msg pageModel
+    SubPagePartial NoArgs Msg Model msg pageModel
 
 
 page :

@@ -11,6 +11,8 @@ import FontAwesome.Solid as Solid
 import FontAwesome.Icon as Icon
 import List exposing (concat)
 import Common exposing (..)
+import RemoteData exposing (RemoteData)
+import Graphql.Http
 import Content
 
 
@@ -96,6 +98,11 @@ footerSize =
     ]
 
 
+fillXY : List (Attribute msg)
+fillXY =
+    [ height fill, width fill ]
+
+
 button : List (Attribute msg)
 button =
     [ Background.color C.queenBlue2
@@ -113,13 +120,12 @@ button =
 spinIcon extra icon =
     el
         (concat
-            [ textBox
-            , [ paddingXY 30 30, width fill ]
+            [ fillXY
             , extra
             ]
         )
         (el
-            [ centerX ]
+            [ centerX, centerY ]
             (html
                 (Icon.viewStyled
                     [ Attributes.fa4x, Attributes.spin ]
@@ -138,7 +144,7 @@ spinner =
 
 
 fullPageSpinner =
-    spinnerBase [ height fill ]
+    spinnerBase fillXY
 
 
 cogBase extra =
@@ -150,7 +156,7 @@ cog =
 
 
 fullPageCog =
-    cogBase [ height fill ]
+    cogBase fillXY
 
 
 loginButton : Element msg
@@ -279,12 +285,27 @@ unauthorized =
         )
 
 
+
+-- The hardcoded 50px here is a bit too much but
+-- it's the only way I can get the scrollbars working
+
+
 fullPage mainFunc pageModel session =
     column [ spacing 0, width fill, height (px session.size.height) ]
         [ row [ width fill, height (px 50) ] [ thinLogo ]
-        , row [ width fill, height fill ]
+        , row fillXY
             [ sidebar session
-            , el [ width fill, height (px (session.size.height - 50)), scrollbars ]
+            , el
+                (concat
+                    [ textBox
+                    , textFont
+                    , [ paddingXY 30 30
+                      , width fill
+                      , height (px (session.size.height - 50))
+                      , scrollbars
+                      ]
+                    ]
+                )
                 (case session.user of
                     Anonymous _ ->
                         fullPageSpinner
@@ -397,3 +418,35 @@ sidebar session =
         [ row [ height fill ] [ nav session ]
         , footer session
         ]
+
+
+tableHeader : String -> Element msg
+tableHeader val =
+    el [ paddingXY 10 10, Font.bold ] (text val)
+
+
+tableCell : (a -> Element msg) -> a -> Element msg
+tableCell toEl val =
+    el [ paddingXY 10 5 ] (toEl val)
+
+
+remoteDataPage :
+    (model -> Session -> a -> Element msg)
+    -> model
+    -> Session
+    -> RemoteData (Graphql.Http.Error a) a
+    -> Element msg
+remoteDataPage view model session maybeData =
+    case maybeData of
+        RemoteData.NotAsked ->
+            fullPageCog
+
+        RemoteData.Loading ->
+            fullPageSpinner
+
+        RemoteData.Failure message ->
+            errorMsgFromGraphQL message
+                |> error session
+
+        RemoteData.Success data ->
+            view model session data

@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 prospector = "*"
+autopep8 = "*"
 
 [packages]
 django = "==2.2.*"

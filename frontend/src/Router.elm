@@ -9,6 +9,7 @@ type Route
     | Unauthorized
     | Dashboard
     | PlayerList
+    | Player String
 
 
 routeParser : Parser (Route -> a) a
@@ -18,6 +19,7 @@ routeParser =
         , map Login (s "login")
         , map Dashboard (s "dashboard")
         , map PlayerList (s "players")
+        , map Player (s "players" </> string)
         , map Unauthorized (s "login" </> s "unauthorized")
         ]
 

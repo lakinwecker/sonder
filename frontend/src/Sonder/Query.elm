@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Query exposing (games, players)
+module Sonder.Query exposing (GameRequiredArguments, PlayerRequiredArguments, game, games, player, players)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,9 +19,29 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
+type alias PlayerRequiredArguments =
+    { username : String }
+
+
+player : PlayerRequiredArguments -> SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe decodesTo) RootQuery
+player requiredArgs object_ =
+    Object.selectionForCompositeField "player" [ Argument.required "username" requiredArgs.username Encode.string ] object_ (identity >> Decode.nullable)
+
+
 players : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
 players object_ =
     Object.selectionForCompositeField "players" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias GameRequiredArguments =
+    { id : Sonder.ScalarCodecs.Id }
+
+
+{-| The ID of the object
+-}
+game : GameRequiredArguments -> SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (Maybe decodesTo) RootQuery
+game requiredArgs object_ =
+    Object.selectionForCompositeField "game" [ Argument.required "id" requiredArgs.id (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId) ] object_ (identity >> Decode.nullable)
 
 
 games : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery

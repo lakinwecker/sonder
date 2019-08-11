@@ -80,6 +80,6 @@ gamesAsBlack fillInOptionals object_ =
     Object.selectionForCompositeField "gamesAsBlack" optionalArgs object_ identity
 
 
-totalGames : SelectionSet String Sonder.Object.Player
+totalGames : SelectionSet Int Sonder.Object.Player
 totalGames =
-    Object.selectionForField "String" "totalGames" [] Decode.string
+    Object.selectionForField "Int" "totalGames" [] Decode.int

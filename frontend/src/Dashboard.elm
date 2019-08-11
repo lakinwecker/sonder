@@ -6,6 +6,7 @@ import List exposing (concat)
 import Styles as S
 import Http
 import Auth
+import Router
 
 
 type alias Model =
@@ -13,8 +14,8 @@ type alias Model =
     }
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> NoArgs -> ( Model, Cmd Msg )
+init session _ =
     ( { status = PageLoading }
     , loadStatus
     )
@@ -65,7 +66,7 @@ subscriptions model =
 
 
 type alias Page msg pageModel =
-    SubPagePartial Msg Model msg pageModel
+    SubPagePartial NoArgs Msg Model msg pageModel
 
 
 page :

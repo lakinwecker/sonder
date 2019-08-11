@@ -6,6 +6,7 @@ import Json.Decode exposing (Decoder, field, string)
 import Element exposing (..)
 import Styles as S
 import Common exposing (..)
+import Router
 
 
 -- MODEL
@@ -16,8 +17,8 @@ type alias Model =
     }
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> NoArgs -> ( Model, Cmd Msg )
+init session _ =
     ( { status = RedirectLoading }
     , load
     )
@@ -86,7 +87,7 @@ subscriptions model =
 
 
 type alias Page msg pageModel =
-    SubPagePartial Msg Model msg pageModel
+    SubPagePartial NoArgs Msg Model msg pageModel
 
 
 page :

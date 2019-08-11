@@ -71,7 +71,7 @@ class Player(DjangoObjectType):
         filter_fields = ['username']
         interfaces = (relay.Node, )
 
-    totalGames = graphene.String(required=True)
+    totalGames = graphene.Int(required=True)
 
     def resolve_totalGames(parent, info):
         return len(parent.games_as_white.all()) + len(parent.games_as_black.all())
@@ -87,9 +87,23 @@ class Game(DjangoObjectType):
         interfaces = (relay.Node, )
 
 class Query(ObjectType):
+    player = graphene.Field(Player,
+                              username=graphene.String(required=True))
     players = graphene.List(Player)
+    game = relay.Node.Field(Game)
     games = graphene.List(Game)
 
+    def resolve_player(self, info, **kwargs):
+        id = kwargs.get('id')
+        username = kwargs.get('username')
+
+        if id is not None:
+            return models.Player.objects.get(pk=id)
+
+        if username is not None:
+            return models.Player.objects.get(username=username)
+
+        return None
 
     def resolve_players(self, info, **kwargs):
         return models.Player.objects.all() \

@@ -26,7 +26,7 @@ oauth = OAuth(fetch_token=fetch_token)
 oauth.register('lichess')
 
 
-def index(request):
+def index(request, **kwargs):
     return render(request, "sonder/frontend/index.html")
 
 def login(request):

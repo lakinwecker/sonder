@@ -26,6 +26,7 @@ import Colors as C
 import Dashboard
 import Login
 import PlayerList
+import Player
 import Router
 import StaticPage
 import Styles as S
@@ -59,6 +60,7 @@ type SubPageModel
     = SplashModel StaticPage.Model
     | LoginModel Login.Model
     | PlayerListModel PlayerList.Model
+    | PlayerModel Player.Model
     | DashboardModel Dashboard.Model
     | UnauthorizedModel StaticPage.Model
 
@@ -101,18 +103,25 @@ playerListPage =
         PlayerListModel
 
 
-type alias SubPage subMsg subModel =
-    SubPagePartial subMsg subModel Msg SubPageModel
+playerPage =
+    Player.page
+        GotPlayerMsg
+        PlayerModel
+
+
+type alias SubPage initArgs subMsg subModel =
+    SubPagePartial initArgs subMsg subModel Msg SubPageModel
 
 
 subPageInit :
-    SubPage subMsg subModel
+    SubPage initArgs subMsg subModel
     -> Session
+    -> initArgs
     -> ( SubPageModel, Cmd Msg )
-subPageInit subPage session =
+subPageInit subPage session initArgs =
     let
         ( subModel, subMsg ) =
-            subPage.init session
+            subPage.init session initArgs
     in
         ( subPage.model subModel
         , Cmd.map subPage.msg subMsg
@@ -127,22 +136,25 @@ urlToPage url session =
     in
         case route of
             Just Router.Splash ->
-                subPageInit splashPage session
+                subPageInit splashPage session NoArgs
 
             Just Router.Login ->
-                subPageInit loginPage session
+                subPageInit loginPage session NoArgs
 
             Just Router.Unauthorized ->
-                subPageInit unauthorizedPage session
+                subPageInit unauthorizedPage session NoArgs
 
             Just Router.Dashboard ->
-                subPageInit dashboardPage session
+                subPageInit dashboardPage session NoArgs
 
             Just Router.PlayerList ->
-                subPageInit playerListPage session
+                subPageInit playerListPage session NoArgs
+
+            Just (Router.Player username) ->
+                subPageInit playerPage session (Player.initArgs username)
 
             Nothing ->
-                subPageInit loginPage session
+                subPageInit loginPage session NoArgs
 
 
 loadAuthStatus : Cmd Msg
@@ -186,6 +198,7 @@ type Msg
     | GotSplashMsg StaticPage.Msg
     | GotLoginMsg Login.Msg
     | GotPlayerListMsg PlayerList.Msg
+    | GotPlayerMsg Player.Msg
     | GotDashboardMsg Dashboard.Msg
     | GotUnauthorizedMsg StaticPage.Msg
     | GotAuthStatus (Result Http.Error User)
@@ -193,7 +206,7 @@ type Msg
 
 
 subPageUpdate :
-    SubPage subMsg subModel
+    SubPage initArgs subMsg subModel
     -> subMsg
     -> subModel
     -> Model
@@ -244,8 +257,14 @@ update msg model =
                 oldSession =
                     model.session
 
+                size =
+                    { width = w, height = h }
+
+                device =
+                    classifyDevice size
+
                 newSession =
-                    { oldSession | device = classifyDevice { width = w, height = h } }
+                    { oldSession | device = device, size = size }
             in
                 ( { model | session = newSession }, Cmd.none )
 
@@ -273,8 +292,11 @@ update msg model =
         ( GotDashboardMsg subMsg, DashboardModel subModel ) ->
             subPageUpdate dashboardPage subMsg subModel model
 
+        ( GotPlayerMsg subMsg, PlayerModel subModel ) ->
+            subPageUpdate playerPage subMsg subModel model
+
         ( _, _ ) ->
-            -- Ignore by default
+            --Ignore by default
             ( model, Cmd.none )
 
 
@@ -283,7 +305,7 @@ update msg model =
 
 
 subPageSubscriptions :
-    SubPage subMsg subModel
+    SubPage initArgs subMsg subModel
     -> subModel
     -> Sub Msg
 subPageSubscriptions subPage subModel =
@@ -317,7 +339,7 @@ subscriptions model =
 
 
 subPageView :
-    SubPage subMsg subModel
+    SubPage initArgs subMsg subModel
     -> subModel
     -> Session
     -> Element Msg
@@ -326,7 +348,7 @@ subPageView subPage pageModel session =
 
 
 subPageFullView :
-    SubPage subMsg subModel
+    SubPage initArgs subMsg subModel
     -> subModel
     -> Session
     -> Element Msg
@@ -374,6 +396,9 @@ view model =
 
                 PlayerListModel pageModel ->
                     subPageFullView playerListPage pageModel model.session
+
+                PlayerModel pageModel ->
+                    subPageFullView playerPage pageModel model.session
             )
         ]
     }

@@ -3,14 +3,15 @@ module StaticPage exposing (..)
 import Element exposing (..)
 import Common exposing (..)
 import Styles as S
+import Router
 
 
 type alias Model =
     {}
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> NoArgs -> ( Model, Cmd Msg )
+init _ _ =
     ( {}, Cmd.none )
 
 
@@ -42,7 +43,7 @@ subscriptions model =
 
 
 type alias Page msg pageModel =
-    SubPagePartial Msg Model msg pageModel
+    SubPagePartial NoArgs Msg Model msg pageModel
 
 
 page :
