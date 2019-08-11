@@ -64,10 +64,15 @@ type Username
     = Username String
 
 
+type alias Size =
+    { width : Int, height : Int }
+
+
 type alias Session =
     { user : User
     , key : Nav.Key
     , device : Device
+    , size : Size
     , csrfToken : String
     }
 

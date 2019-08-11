@@ -161,6 +161,7 @@ init flags url key =
                 (Anonymous defaultUserPreferences)
                 key
                 (classifyDevice flags)
+                { width = flags.width, height = flags.height }
                 flags.csrfToken
 
         ( page, cmd ) =

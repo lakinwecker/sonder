@@ -280,16 +280,18 @@ unauthorized =
 
 
 fullPage mainFunc pageModel session =
-    column [ spacing 0, width fill, height fill ]
-        [ row [ width fill ] [ thinLogo ]
+    column [ spacing 0, width fill, height (px session.size.height) ]
+        [ row [ width fill, height (px 50) ] [ thinLogo ]
         , row [ width fill, height fill ]
             [ sidebar session
-            , case session.user of
-                Anonymous _ ->
-                    fullPageSpinner
+            , el [ width fill, height (px (session.size.height - 50)), scrollbars ]
+                (case session.user of
+                    Anonymous _ ->
+                        fullPageSpinner
 
-                (AuthorizedUser _ _) as user ->
-                    mainFunc pageModel session
+                    (AuthorizedUser _ _) as user ->
+                        mainFunc pageModel session
+                )
             ]
         ]
 
