@@ -110,7 +110,7 @@ button =
     ]
 
 
-spinnerBase extra =
+spinIcon extra icon =
     el
         (concat
             [ textBox
@@ -123,10 +123,14 @@ spinnerBase extra =
             (html
                 (Icon.viewStyled
                     [ Attributes.fa4x, Attributes.spin ]
-                    Solid.spinner
+                    icon
                 )
             )
         )
+
+
+spinnerBase extra =
+    spinIcon extra Solid.spinner
 
 
 spinner =
@@ -137,6 +141,18 @@ fullPageSpinner =
     spinnerBase [ height fill ]
 
 
+cogBase extra =
+    spinIcon extra Solid.cog
+
+
+cog =
+    cogBase []
+
+
+fullPageCog =
+    cogBase [ height fill ]
+
+
 loginButton : Element msg
 loginButton =
     link
@@ -144,14 +160,26 @@ loginButton =
         { url = "/login", label = text "Login" }
 
 
-error : String -> Element msg
-error msg =
+error : Session -> String -> Element msg
+error session msg =
     el
         (concat
-            [ textFont, textBox, errorSize, [ paddingXY 30 30, width fill ] ]
+            [ textFont
+            , textBox
+            , errorSize
+            , [ paddingXY 30 30, width fill ]
+            ]
         )
         (column [ spacing 30 ]
-            [ paragraph [] [ text msg ], loginButton ]
+            (case session.user of
+                Anonymous _ ->
+                    [ paragraph [] [ text msg ]
+                    , loginButton
+                    ]
+
+                AuthorizedUser _ _ ->
+                    [ paragraph [] [ text msg ] ]
+            )
         )
 
 
@@ -186,7 +214,12 @@ viewBackgroundForUser u =
 
 splashPage : Session -> Element msg
 splashPage session =
-    column [ centerY, centerX, spacing 0, padding 200 ]
+    column
+        [ centerY
+        , centerX
+        , spacing 0
+        , padding 200
+        ]
         [ logo, intro ]
 
 
@@ -194,7 +227,10 @@ thinLogo : Element msg
 thinLogo =
     el
         (concat
-            [ smallLogoFont, heroBox, [ paddingXY 30 10, width fill ] ]
+            [ smallLogoFont
+            , heroBox
+            , [ paddingXY 30 10, width fill ]
+            ]
         )
         (text "Sonder")
 
@@ -203,7 +239,11 @@ intro : Element msg
 intro =
     el
         (concat
-            [ textFont, textBox, introSize, [ paddingXY 30 30, width fill ] ]
+            [ textFont
+            , textBox
+            , introSize
+            , [ paddingXY 30 30, width fill ]
+            ]
         )
         (column [ spacing 30 ]
             [ paragraph []
@@ -224,7 +264,11 @@ unauthorized : Element msg
 unauthorized =
     el
         (concat
-            [ textFont, textBox, introSize, [ paddingXY 30 30, width fill ] ]
+            [ textFont
+            , textBox
+            , introSize
+            , [ paddingXY 30 30, width fill ]
+            ]
         )
         (column [ spacing 30 ]
             [ paragraph []

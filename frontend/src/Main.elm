@@ -16,6 +16,7 @@ import Element exposing (..)
 import FontAwesome.Styles as FAStyles
 import Http
 import List exposing (concat)
+import Time
 import Url
 
 
@@ -187,6 +188,7 @@ type Msg
     | GotDashboardMsg Dashboard.Msg
     | GotUnauthorizedMsg StaticPage.Msg
     | GotAuthStatus (Result Http.Error User)
+    | GotTick Time.Posix
 
 
 subPageUpdate :
@@ -254,18 +256,10 @@ update msg model =
                 newSession =
                     case result of
                         Ok user ->
-                            let
-                                a =
-                                    Debug.log "LoggedIn" user
-                            in
-                                { oldSession | user = user }
+                            { oldSession | user = user }
 
                         Err _ ->
-                            let
-                                a =
-                                    Debug.log "Anonymous" "foo"
-                            in
-                                { oldSession | user = Auth.anonymousUser }
+                            { oldSession | user = Auth.anonymousUser }
             in
                 ( { model | session = newSession }, Cmd.none )
 
@@ -299,6 +293,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Events.onResize BrowserResize
+        , Time.every 5000 GotTick
         , (case model.subModel of
             LoginModel subModel ->
                 subPageSubscriptions loginPage subModel
@@ -335,10 +330,19 @@ subPageFullView :
     -> Session
     -> Element Msg
 subPageFullView subPage subModel session =
-    viewPage subPage.msg (S.fullPage subPage.view) subModel session
+    viewPage
+        subPage.msg
+        (S.fullPage subPage.view)
+        subModel
+        session
 
 
-viewPage : (subMsg -> Msg) -> (subModel -> Session -> Element subMsg) -> subModel -> Session -> Element Msg
+viewPage :
+    (subMsg -> Msg)
+    -> (subModel -> Session -> Element subMsg)
+    -> subModel
+    -> Session
+    -> Element Msg
 viewPage toMsg subView model session =
     let
         body =

@@ -5,9 +5,12 @@ import Browser
 import Browser.Navigation as Nav
 import Element exposing (..)
 import Http
+import Json.Decode
 import List exposing (concat)
 import Random
+import String
 import Url
+import Graphql.Http
 
 
 type UserBackground
@@ -101,3 +104,46 @@ newBackgroundForUser bg u =
 randomBackgroundIndex : Random.Generator Int
 randomBackgroundIndex =
     length backgrounds |> Random.int 0
+
+
+errorMsgFromHttp : Http.Error -> String
+errorMsgFromHttp error =
+    case error of
+        Http.BadUrl message ->
+            "Bad Url: " ++ message
+
+        Http.Timeout ->
+            "Timeout"
+
+        Http.NetworkError ->
+            "Network Error"
+
+        Http.BadStatus status ->
+            "Bad Status: " ++ String.fromInt (status)
+
+        Http.BadBody message ->
+            "Bad Body" ++ message
+
+
+errorMsgFromGraphQL : Graphql.Http.Error a -> String
+errorMsgFromGraphQL error =
+    case error of
+        Graphql.Http.GraphqlError _ errors ->
+            "GraphQL Error"
+
+        Graphql.Http.HttpError httpError ->
+            case httpError of
+                Graphql.Http.BadUrl message ->
+                    "Bad Url: " ++ message
+
+                Graphql.Http.Timeout ->
+                    "Timeout"
+
+                Graphql.Http.NetworkError ->
+                    "Network Error"
+
+                Graphql.Http.BadStatus metadata body ->
+                    "Bad Status: " ++ String.fromInt (metadata.statusCode)
+
+                Graphql.Http.BadPayload jsonError ->
+                    "Bad Payload" ++ (Json.Decode.errorToString jsonError)

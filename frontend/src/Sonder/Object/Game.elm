@@ -19,7 +19,8 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-{-| -}
+{-| The ID of the object.
+-}
 id : SelectionSet Sonder.ScalarCodecs.Id Sonder.Object.Game
 id =
     Object.selectionForField "ScalarCodecs.Id" "id" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecId |> .decoder)

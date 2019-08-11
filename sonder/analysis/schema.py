@@ -69,6 +69,13 @@ class Player(DjangoObjectType):
     class Meta:
         model = models.Player
         filter_fields = ['username']
+        interfaces = (relay.Node, )
+
+    totalGames = graphene.String(required=True)
+
+    def resolve_totalGames(parent, info):
+        return len(parent.games_as_white.all()) + len(parent.games_as_black.all())
+
 
 class Game(DjangoObjectType):
     class Meta:
@@ -77,6 +84,7 @@ class Game(DjangoObjectType):
             'white_player__username',
             'black_player__username',
         ]
+        interfaces = (relay.Node, )
 
 class Query(ObjectType):
     players = graphene.List(Player)
@@ -84,7 +92,9 @@ class Query(ObjectType):
 
 
     def resolve_players(self, info, **kwargs):
-        return models.Player.objects.all()
+        return models.Player.objects.all() \
+                .order_by('username') \
+                .prefetch_related('games_as_white', 'games_as_black')
 
 
     def resolve_games(self, info, **kwargs):

@@ -45,7 +45,7 @@ view model session =
                 S.spinner
 
             RedirectFailure message ->
-                S.error message
+                S.error session message
         ]
 
 

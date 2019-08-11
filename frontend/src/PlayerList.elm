@@ -30,6 +30,7 @@ import Sonder.Interface
 
 type alias Player =
     { username : String
+    , totalGames : String
     }
 
 
@@ -48,16 +49,14 @@ type alias Model =
 
 query : SelectionSet Response RootQuery
 query =
-    -- We use `identity` to say that we aren't giving any
-    -- optional arguments to `hero`. Read this blog post for more:
-    -- https://medium.com/@zenitram.oiram/graphqelm-optional-arguments-in-a-language-without-optional-arguments-d8074ca3cf74
     Query.players playerInfoSelection
 
 
 playerInfoSelection : SelectionSet Player Sonder.Object.Player
 playerInfoSelection =
-    SelectionSet.map Player
+    SelectionSet.map2 Player
         Player.username
+        Player.totalGames
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -78,71 +77,45 @@ loadPlayers session =
 
 view : Model -> Session -> Element Msg
 view pageModel session =
-    let
-        a =
-            Debug.log "PlayersList.view" pageModel.players
-    in
-        case pageModel.players of
-            RemoteData.NotAsked ->
-                viewWaiting pageModel session
+    case pageModel.players of
+        RemoteData.NotAsked ->
+            S.fullPageCog
 
-            RemoteData.Loading ->
-                viewLoading pageModel session
+        RemoteData.Loading ->
+            S.fullPageSpinner
 
-            -- TODO: Not appropriate
-            RemoteData.Failure message ->
-                viewError pageModel session
+        RemoteData.Failure message ->
+            errorMsgFromGraphQL message
+                |> S.error session
 
-            -- TODO: Not appropriate
-            RemoteData.Success players ->
-                viewLoaded pageModel session players
+        RemoteData.Success players ->
+            viewLoaded pageModel session players
 
 
-viewLoading : Model -> Session -> Element Msg
-viewLoading pageModel session =
-    S.fullPageSpinner
+viewPlayer : Maybe Player -> Element Msg
+viewPlayer maybePlayer =
+    case maybePlayer of
+        Nothing ->
+            Element.none
+
+        Just player ->
+            el
+                []
+                (paragraph
+                    []
+                    [ text (player.username ++ player.totalGames)
+                    ]
+                )
 
 
-viewWaiting : Model -> Session -> Element Msg
-viewWaiting pageModel session =
-    el
-        (concat
-            [ S.textFont
-            , S.textBox
-            , S.introSize
-            , [ paddingXY 30 30
-              , width fill
-              , height fill
-              ]
-            ]
-        )
-        (column [ spacing 30 ]
-            [ paragraph []
-                [ text "error"
-                ]
-            ]
-        )
+viewPlayers : Response -> List (Element Msg)
+viewPlayers maybePlayers =
+    case maybePlayers of
+        Nothing ->
+            []
 
-
-viewError : Model -> Session -> Element Msg
-viewError pageModel session =
-    el
-        (concat
-            [ S.textFont
-            , S.textBox
-            , S.introSize
-            , [ paddingXY 30 30
-              , width fill
-              , height fill
-              ]
-            ]
-        )
-        (column [ spacing 30 ]
-            [ paragraph []
-                [ text "error"
-                ]
-            ]
-        )
+        Just players ->
+            List.map viewPlayer players
 
 
 viewLoaded : Model -> Session -> Response -> Element Msg
@@ -154,14 +127,12 @@ viewLoaded pageModel session players =
             , S.introSize
             , [ paddingXY 30 30
               , width fill
-              , height fill
               ]
             ]
         )
         (column [ spacing 30 ]
             [ paragraph []
-                [ text "Loaded"
-                ]
+                (viewPlayers players)
             ]
         )
 

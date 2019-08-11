@@ -2,9 +2,8 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Interface exposing (placeholder)
+module Sonder.Interface exposing (Node(..))
 
 
-placeholder : String
-placeholder =
-    ""
+type Node
+    = Node
