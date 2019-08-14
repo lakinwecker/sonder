@@ -15,7 +15,6 @@ import Common exposing (..)
 import Element exposing (..)
 import FontAwesome.Styles as FAStyles
 import Http
-import List exposing (concat)
 import Time
 import Url
 
@@ -63,6 +62,7 @@ type SubPageModel
     | PlayerModel Player.Model
     | DashboardModel Dashboard.Model
     | UnauthorizedModel StaticPage.Model
+    | ColoursModel StaticPage.Model
 
 
 type alias Model =
@@ -76,6 +76,13 @@ splashPage =
         S.splashPage
         GotSplashMsg
         SplashModel
+
+
+coloursPage =
+    StaticPage.page
+        S.coloursPage
+        GotColoursMsg
+        ColoursModel
 
 
 loginPage =
@@ -141,6 +148,9 @@ urlToPage url session =
             Just Router.Login ->
                 subPageInit loginPage session NoArgs
 
+            Just Router.Colours ->
+                subPageInit coloursPage session NoArgs
+
             Just Router.Unauthorized ->
                 subPageInit unauthorizedPage session NoArgs
 
@@ -196,11 +206,12 @@ type Msg
     | UrlChanged Url.Url
     | BrowserResize Int Int
     | GotSplashMsg StaticPage.Msg
+    | GotUnauthorizedMsg StaticPage.Msg
+    | GotColoursMsg StaticPage.Msg
     | GotLoginMsg Login.Msg
     | GotPlayerListMsg PlayerList.Msg
     | GotPlayerMsg Player.Msg
     | GotDashboardMsg Dashboard.Msg
-    | GotUnauthorizedMsg StaticPage.Msg
     | GotAuthStatus (Result Http.Error User)
     | GotTick Time.Posix
 
@@ -376,29 +387,36 @@ viewPage toMsg subView model session =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Sonder"
-    , body =
-        [ FAStyles.css
-        , Element.layout
-            [ S.viewBackgroundForUser model.session.user ]
+    let
+        pageView =
             (case model.subModel of
                 SplashModel pageModel ->
-                    subPageView splashPage pageModel model.session
+                    subPageView splashPage pageModel
+
+                ColoursModel pageModel ->
+                    subPageView coloursPage pageModel
 
                 LoginModel pageModel ->
-                    subPageView loginPage pageModel model.session
+                    subPageView loginPage pageModel
 
                 UnauthorizedModel pageModel ->
-                    subPageView unauthorizedPage pageModel model.session
+                    subPageView unauthorizedPage pageModel
 
                 DashboardModel pageModel ->
-                    subPageFullView dashboardPage pageModel model.session
+                    subPageFullView dashboardPage pageModel
 
                 PlayerListModel pageModel ->
-                    subPageFullView playerListPage pageModel model.session
+                    subPageFullView playerListPage pageModel
 
                 PlayerModel pageModel ->
-                    subPageFullView playerPage pageModel model.session
+                    subPageFullView playerPage pageModel
             )
-        ]
-    }
+    in
+        { title = "Sonder"
+        , body =
+            [ FAStyles.css
+            , Element.layout
+                [ S.viewBackgroundForUser model.session.user ]
+                (pageView model.session)
+            ]
+        }

@@ -9,11 +9,23 @@ import Colors as C
 import FontAwesome.Attributes as Attributes
 import FontAwesome.Solid as Solid
 import FontAwesome.Icon as Icon
-import List exposing (concat)
 import Common exposing (..)
 import RemoteData exposing (RemoteData)
 import Graphql.Http
 import Content
+
+
+type alias BorderWidth =
+    { bottom : Int
+    , left : Int
+    , right : Int
+    , top : Int
+    }
+
+
+defaultBorder : BorderWidth
+defaultBorder =
+    { bottom = 0, left = 0, right = 0, top = 0 }
 
 
 scaled x =
@@ -29,7 +41,7 @@ raleway =
 
 
 coustard =
-    Font.family [ Font.typeface "Coustard", Font.typeface "sans-serif" ]
+    Font.family [ Font.typeface "Coustard", Font.typeface "serif" ]
 
 
 backgroundAlpha =
@@ -79,6 +91,17 @@ textBox =
     ]
 
 
+content : List (Attribute msg)
+content =
+    [ Background.color C.white
+    , Font.color C.black
+    , Border.rounded 5
+    , Border.width 1
+    , Border.color C.quaternaryShade2
+    , padding 5
+    ]
+
+
 introSize : List (Attribute msg)
 introSize =
     [ Font.size (scaled 3)
@@ -103,6 +126,11 @@ fillXY =
     [ height fill, width fill ]
 
 
+centerXY : List (Attribute msg)
+centerXY =
+    [ centerX, centerY ]
+
+
 button : List (Attribute msg)
 button =
     [ Background.color C.queenBlue2
@@ -119,11 +147,7 @@ button =
 
 spinIcon extra icon =
     el
-        (concat
-            [ fillXY
-            , extra
-            ]
-        )
+        (fillXY ++ extra)
         (el
             [ centerX, centerY ]
             (html
@@ -162,19 +186,17 @@ fullPageCog =
 loginButton : Element msg
 loginButton =
     link
-        (concat [ button ])
+        button
         { url = "/login", label = text "Login" }
 
 
 error : Session -> String -> Element msg
 error session msg =
     el
-        (concat
-            [ textFont
-            , textBox
-            , errorSize
-            , [ paddingXY 30 30, width fill ]
-            ]
+        (textFont
+            ++ textBox
+            ++ errorSize
+            ++ [ paddingXY 30 30, width fill ]
         )
         (column [ spacing 30 ]
             (case session.user of
@@ -192,8 +214,9 @@ error session msg =
 logo : Element msg
 logo =
     el
-        (concat
-            [ logoFont, heroBox, [ padding 30, width fill ] ]
+        (logoFont
+            ++ heroBox
+            ++ [ padding 30, width fill ]
         )
         (text "Sonder")
 
@@ -229,14 +252,90 @@ splashPage session =
         [ logo, intro ]
 
 
+coloursTable : pageModel -> Session -> Element msg
+coloursTable pageModel session =
+    let
+        c color title =
+            el
+                ([ Background.color color ]
+                    ++ fillXY
+                )
+                (el
+                    ([ coustard ]
+                        ++ centerXY
+                    )
+                    (text title)
+                )
+    in
+        column
+            (fillXY
+                ++ content
+            )
+            [ column
+                (centerXY
+                    ++ fillXY
+                )
+                [ (column
+                    ([ spacing 10 ]
+                        ++ fillXY
+                    )
+                    [ row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade0 "Primary 0"
+                        , c C.secondaryShade0 "Secondary 0"
+                        , c C.ternaryShade0 "Ternary 0"
+                        , c C.quaternaryShade0 "Quaternary 0"
+                        , c C.quinaryShade0 "Quinary 0"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade1 "Primary 1"
+                        , c C.secondaryShade1 "Secondary 1"
+                        , c C.ternaryShade1 "Ternary 1"
+                        , c C.quaternaryShade1 "Quaternary 1"
+                        , c C.quinaryShade1 "Quinary 1"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade2 "Primary 2"
+                        , c C.secondaryShade2 "Secondary 2"
+                        , c C.ternaryShade2 "Ternary 2"
+                        , c C.quaternaryShade2 "Quaternary 2"
+                        , c C.quinaryShade2 "Quinary 2"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade3 "Primary 3"
+                        , c C.secondaryShade3 "Secondary 3"
+                        , c C.ternaryShade3 "Ternary 3"
+                        , c C.quaternaryShade3 "Quaternary 3"
+                        , c C.quinaryShade3 "Quinary 3"
+                        ]
+                    ]
+                  )
+                ]
+            ]
+
+
+coloursPage : Session -> Element msg
+coloursPage session =
+    fullPage coloursTable [] session
+
+
 thinLogo : Element msg
 thinLogo =
     el
-        (concat
-            [ smallLogoFont
-            , heroBox
-            , [ paddingXY 30 10, width fill ]
-            ]
+        (smallLogoFont
+            ++ heroBox
+            ++ [ paddingXY 30 10, width fill ]
         )
         (text "Sonder")
 
@@ -244,12 +343,10 @@ thinLogo =
 intro : Element msg
 intro =
     el
-        (concat
-            [ textFont
-            , textBox
-            , introSize
-            , [ paddingXY 30 30, width fill ]
-            ]
+        (textFont
+            ++ textBox
+            ++ introSize
+            ++ [ paddingXY 30 30, width fill ]
         )
         (column [ spacing 30 ]
             [ paragraph []
@@ -269,12 +366,10 @@ unauthorizedPage session =
 unauthorized : Element msg
 unauthorized =
     el
-        (concat
-            [ textFont
-            , textBox
-            , introSize
-            , [ paddingXY 30 30, width fill ]
-            ]
+        (textFont
+            ++ textBox
+            ++ introSize
+            ++ [ paddingXY 30 30, width fill ]
         )
         (column [ spacing 30 ]
             [ paragraph []
@@ -296,15 +391,13 @@ fullPage mainFunc pageModel session =
         , row fillXY
             [ sidebar session
             , el
-                (concat
-                    [ textBox
-                    , textFont
-                    , [ paddingXY 30 30
-                      , width fill
-                      , height (px (session.size.height - 50))
-                      , scrollbars
-                      ]
-                    ]
+                (textBox
+                    ++ textFont
+                    ++ [ paddingXY 10 10
+                       , width fill
+                       , height (px (session.size.height - 50))
+                       , scrollbars
+                       ]
                 )
                 (case session.user of
                     Anonymous _ ->
@@ -320,11 +413,9 @@ fullPage mainFunc pageModel session =
 footer : Session -> Element msg
 footer session =
     el
-        (concat
-            [ footerFont
-            , footerSize
-            , [ spacing 2, height shrink, width fill ]
-            ]
+        (footerFont
+            ++ footerSize
+            ++ [ spacing 2, height shrink, width fill ]
         )
         (row []
             [ footerDevice session.device
@@ -336,11 +427,9 @@ footer session =
 footerDevice : Device -> Element msg
 footerDevice device =
     el
-        (concat
-            [ footerFont
-            , footerSize
-            , [ paddingXY 5 5, width fill ]
-            ]
+        (footerFont
+            ++ footerSize
+            ++ [ paddingXY 5 5, width fill ]
         )
         (row []
             [ html
@@ -367,11 +456,9 @@ footerDevice device =
 footerUser : User -> Element msg
 footerUser user =
     el
-        (concat
-            [ footerFont
-            , footerSize
-            , [ paddingXY 5 5, width fill ]
-            ]
+        (footerFont
+            ++ footerSize
+            ++ [ paddingXY 5 5, width fill ]
         )
         (row []
             [ html
@@ -407,13 +494,11 @@ nav session =
 
 sidebar session =
     column
-        (concat
-            [ textFont
-            , textBox
-            , [ height fill
-              , Border.widthEach { bottom = 0, top = 0, left = 0, right = 2 }
-              ]
-            ]
+        (textFont
+            ++ textBox
+            ++ [ height fill
+               , Border.widthEach { defaultBorder | right = 2 }
+               ]
         )
         [ row [ height fill ] [ nav session ]
         , footer session
@@ -422,12 +507,23 @@ sidebar session =
 
 tableHeader : String -> Element msg
 tableHeader val =
-    el [ paddingXY 10 10, Font.bold ] (text val)
+    el
+        [ raleway
+        , paddingXY 10 10
+        , Font.bold
+        , Border.widthEach { defaultBorder | bottom = 2 }
+        , Border.color C.secondaryShade2
+        ]
+        (text val)
 
 
-tableCell : (a -> Element msg) -> a -> Element msg
-tableCell toEl val =
-    el [ paddingXY 10 5 ] (toEl val)
+tableCell : List (Attribute msg) -> (a -> Element msg) -> a -> Element msg
+tableCell extra toEl val =
+    el
+        ([ lato, paddingXY 10 10 ]
+            ++ extra
+        )
+        (toEl val)
 
 
 remoteDataPage :

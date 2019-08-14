@@ -2,7 +2,6 @@ module Dashboard exposing (..)
 
 import Element exposing (..)
 import Common exposing (..)
-import List exposing (concat)
 import Styles as S
 import Http
 import Auth
@@ -24,8 +23,10 @@ init session _ =
 view : Model -> Session -> Element Msg
 view pageModel session =
     el
-        (concat
-            [ S.textFont, S.textBox, S.introSize, [ paddingXY 30 30, width fill, height fill ] ]
+        (S.textFont
+            ++ S.textBox
+            ++ S.introSize
+            ++ [ paddingXY 30 30, width fill, height fill ]
         )
         (column [ spacing 30 ]
             [ paragraph []

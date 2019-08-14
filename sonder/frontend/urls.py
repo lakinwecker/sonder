@@ -10,7 +10,8 @@ urlpatterns = [
     path('login/authorize', views.authorize, name='login.authorize'),
     path('login/unauthorized', views.index, name='login.unauthorized'),
     path('dashboard', views.index, name='dashboard'),
-    path('players', views.index, name='dashboard'),
-    path('players/<str:username>', views.index, name='dashboard'),
+    path('colours', views.index, name='colours'),
+    path('players', views.index, name='players'),
+    path('players/<str:username>', views.index, name='player-detail'),
 ]
 

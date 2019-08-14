@@ -21,7 +21,6 @@ import Sonder.Query as Query
 import RemoteData exposing (RemoteData)
 import Element exposing (..)
 import Common exposing (..)
-import List exposing (concat)
 import Styles as S
 import Http
 import Auth
@@ -115,20 +114,20 @@ viewLoaded pageModel session maybePlayers =
 
         Just players ->
             table
-                []
+                S.content
                 { data = players
                 , columns =
                     [ { header = S.tableHeader "Username"
                       , width = fill
                       , view =
                             \person ->
-                                maybeAttr identity (S.tableCell playerLink) person
+                                maybeAttr identity (S.tableCell [] playerLink) person
                       }
                     , { header = S.tableHeader "# Games"
                       , width = fill
                       , view =
                             \person ->
-                                maybeAttr totalGamesStr (S.tableCell text) person
+                                maybeAttr totalGamesStr (S.tableCell [] text) person
                       }
                     ]
                 }
