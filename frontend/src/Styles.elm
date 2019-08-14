@@ -15,6 +15,11 @@ import Graphql.Http
 import Content
 
 
+--------------------------------------------------------------------------------
+-- Style Attributes
+--------------------------------------------------------------------------------
+
+
 type alias BorderWidth =
     { bottom : Int
     , left : Int
@@ -28,22 +33,32 @@ defaultBorder =
     { bottom = 0, left = 0, right = 0, top = 0 }
 
 
+scaled : Int -> Int
 scaled x =
     round (modular 14 1.25 x)
 
 
+lato : Attribute msg
 lato =
     Font.family [ Font.typeface "Lato", Font.typeface "sans-serif" ]
 
 
+raleway : Attribute msg
 raleway =
     Font.family [ Font.typeface "Raleway", Font.typeface "sans-serif" ]
 
 
+coustard : Attribute msg
 coustard =
     Font.family [ Font.typeface "Coustard", Font.typeface "serif" ]
 
 
+robotoSlab : Attribute msg
+robotoSlab =
+    Font.family [ Font.typeface "Roboto Slab", Font.typeface "serif" ]
+
+
+backgroundAlpha : Float
 backgroundAlpha =
     0.85
 
@@ -145,6 +160,7 @@ button =
     ]
 
 
+spinIcon : List (Attribute msg) -> Icon.Icon -> Element msg
 spinIcon extra icon =
     el
         (fillXY ++ extra)
@@ -159,66 +175,34 @@ spinIcon extra icon =
         )
 
 
+spinnerBase : List (Attribute msg) -> Element msg
 spinnerBase extra =
     spinIcon extra Solid.spinner
 
 
+spinner : Element msg
 spinner =
     spinnerBase []
 
 
+fullPageSpinner : Element msg
 fullPageSpinner =
     spinnerBase fillXY
 
 
+cogBase : List (Attribute msg) -> Element msg
 cogBase extra =
     spinIcon extra Solid.cog
 
 
+cog : Element msg
 cog =
     cogBase []
 
 
+fullPageCog : Element msg
 fullPageCog =
     cogBase fillXY
-
-
-loginButton : Element msg
-loginButton =
-    link
-        button
-        { url = "/login", label = text "Login" }
-
-
-error : Session -> String -> Element msg
-error session msg =
-    el
-        (textFont
-            ++ textBox
-            ++ errorSize
-            ++ [ paddingXY 30 30, width fill ]
-        )
-        (column [ spacing 30 ]
-            (case session.user of
-                Anonymous _ ->
-                    [ paragraph [] [ text msg ]
-                    , loginButton
-                    ]
-
-                AuthorizedUser _ _ ->
-                    [ paragraph [] [ text msg ] ]
-            )
-        )
-
-
-logo : Element msg
-logo =
-    el
-        (logoFont
-            ++ heroBox
-            ++ [ padding 30, width fill ]
-        )
-        (text "Sonder")
 
 
 viewBackground : UserBackground -> Element.Attribute msg
@@ -241,93 +225,27 @@ viewBackgroundForUser u =
             viewBackground prefs.background
 
 
-splashPage : Session -> Element msg
-splashPage session =
-    column
-        [ centerY
-        , centerX
-        , spacing 0
-        , padding 200
-        ]
-        [ logo, intro ]
+
+--------------------------------------------------------------------------------
+-- Fragments of a view
+--------------------------------------------------------------------------------
 
 
-coloursTable : pageModel -> Session -> Element msg
-coloursTable pageModel session =
-    let
-        c color title =
-            el
-                ([ Background.color color ]
-                    ++ fillXY
-                )
-                (el
-                    ([ coustard ]
-                        ++ centerXY
-                    )
-                    (text title)
-                )
-    in
-        column
-            (fillXY
-                ++ content
-            )
-            [ column
-                (centerXY
-                    ++ fillXY
-                )
-                [ (column
-                    ([ spacing 10 ]
-                        ++ fillXY
-                    )
-                    [ row
-                        ([ spacing 10 ]
-                            ++ fillXY
-                        )
-                        [ c C.primaryShade0 "Primary 0"
-                        , c C.secondaryShade0 "Secondary 0"
-                        , c C.ternaryShade0 "Ternary 0"
-                        , c C.quaternaryShade0 "Quaternary 0"
-                        , c C.quinaryShade0 "Quinary 0"
-                        ]
-                    , row
-                        ([ spacing 10 ]
-                            ++ fillXY
-                        )
-                        [ c C.primaryShade1 "Primary 1"
-                        , c C.secondaryShade1 "Secondary 1"
-                        , c C.ternaryShade1 "Ternary 1"
-                        , c C.quaternaryShade1 "Quaternary 1"
-                        , c C.quinaryShade1 "Quinary 1"
-                        ]
-                    , row
-                        ([ spacing 10 ]
-                            ++ fillXY
-                        )
-                        [ c C.primaryShade2 "Primary 2"
-                        , c C.secondaryShade2 "Secondary 2"
-                        , c C.ternaryShade2 "Ternary 2"
-                        , c C.quaternaryShade2 "Quaternary 2"
-                        , c C.quinaryShade2 "Quinary 2"
-                        ]
-                    , row
-                        ([ spacing 10 ]
-                            ++ fillXY
-                        )
-                        [ c C.primaryShade3 "Primary 3"
-                        , c C.secondaryShade3 "Secondary 3"
-                        , c C.ternaryShade3 "Ternary 3"
-                        , c C.quaternaryShade3 "Quaternary 3"
-                        , c C.quinaryShade3 "Quinary 3"
-                        ]
-                    ]
-                  )
-                ]
-            ]
+loginButton : Element msg
+loginButton =
+    link
+        button
+        { url = "/login", label = text "Login" }
 
 
-coloursPage : Session -> Element msg
-coloursPage session =
-    fullPage coloursTable [] session
+logo : Element msg
+logo =
+    el
+        (logoFont
+            ++ heroBox
+            ++ [ padding 30, width fill ]
+        )
+        (text "Sonder")
 
 
 thinLogo : Element msg
@@ -378,36 +296,6 @@ unauthorized =
             , loginButton
             ]
         )
-
-
-
--- The hardcoded 50px here is a bit too much but
--- it's the only way I can get the scrollbars working
-
-
-fullPage mainFunc pageModel session =
-    column [ spacing 0, width fill, height (px session.size.height) ]
-        [ row [ width fill, height (px 50) ] [ thinLogo ]
-        , row fillXY
-            [ sidebar session
-            , el
-                (textBox
-                    ++ textFont
-                    ++ [ paddingXY 10 10
-                       , width fill
-                       , height (px (session.size.height - 50))
-                       , scrollbars
-                       ]
-                )
-                (case session.user of
-                    Anonymous _ ->
-                        fullPageSpinner
-
-                    (AuthorizedUser _ _) as user ->
-                        mainFunc pageModel session
-                )
-            ]
-        ]
 
 
 footer : Session -> Element msg
@@ -508,7 +396,7 @@ sidebar session =
 tableHeader : String -> Element msg
 tableHeader val =
     el
-        [ raleway
+        [ robotoSlab
         , paddingXY 10 10
         , Font.bold
         , Border.widthEach { defaultBorder | bottom = 2 }
@@ -546,3 +434,146 @@ remoteDataPage view model session maybeData =
 
         RemoteData.Success data ->
             view model session data
+
+
+
+--------------------------------------------------------------------------------
+-- Views
+--------------------------------------------------------------------------------
+-- The hardcoded 50px in fullPage is a bit too much but
+-- it's the only way I can get the scrollbars working
+
+
+fullPage mainFunc pageModel session =
+    column [ spacing 0, width fill, height (px session.size.height) ]
+        [ row [ width fill, height (px 50) ] [ thinLogo ]
+        , row fillXY
+            [ sidebar session
+            , el
+                (textBox
+                    ++ textFont
+                    ++ [ paddingXY 10 10
+                       , width fill
+                       , height (px (session.size.height - 50))
+                       , scrollbars
+                       ]
+                )
+                (case session.user of
+                    Anonymous _ ->
+                        fullPageSpinner
+
+                    (AuthorizedUser _ _) as user ->
+                        mainFunc pageModel session
+                )
+            ]
+        ]
+
+
+splashPage : Session -> Element msg
+splashPage session =
+    column
+        [ centerY
+        , centerX
+        , spacing 0
+        , padding 200
+        ]
+        [ logo, intro ]
+
+
+coloursTable : pageModel -> Session -> Element msg
+coloursTable pageModel session =
+    let
+        c color title =
+            el
+                ([ Background.color color ]
+                    ++ fillXY
+                )
+                (el
+                    ([ coustard ]
+                        ++ centerXY
+                    )
+                    (text title)
+                )
+    in
+        column
+            (fillXY
+                ++ content
+            )
+            [ column
+                (centerXY
+                    ++ fillXY
+                )
+                [ (column
+                    ([ spacing 10 ]
+                        ++ fillXY
+                    )
+                    [ row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade0 "Primary 0"
+                        , c C.secondaryShade0 "Secondary 0"
+                        , c C.ternaryShade0 "Ternary 0"
+                        , c C.quaternaryShade0 "Quaternary 0"
+                        , c C.quinaryShade0 "Quinary 0"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade1 "Primary 1"
+                        , c C.secondaryShade1 "Secondary 1"
+                        , c C.ternaryShade1 "Ternary 1"
+                        , c C.quaternaryShade1 "Quaternary 1"
+                        , c C.quinaryShade1 "Quinary 1"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade2 "Primary 2"
+                        , c C.secondaryShade2 "Secondary 2"
+                        , c C.ternaryShade2 "Ternary 2"
+                        , c C.quaternaryShade2 "Quaternary 2"
+                        , c C.quinaryShade2 "Quinary 2"
+                        ]
+                    , row
+                        ([ spacing 10 ]
+                            ++ fillXY
+                        )
+                        [ c C.primaryShade3 "Primary 3"
+                        , c C.secondaryShade3 "Secondary 3"
+                        , c C.ternaryShade3 "Ternary 3"
+                        , c C.quaternaryShade3 "Quaternary 3"
+                        , c C.quinaryShade3 "Quinary 3"
+                        ]
+                    ]
+                  )
+                ]
+            ]
+
+
+coloursPage : Session -> Element msg
+coloursPage session =
+    fullPage coloursTable [] session
+
+
+error : Session -> String -> Element msg
+error session msg =
+    el
+        (textFont
+            ++ textBox
+            ++ errorSize
+            ++ [ paddingXY 30 30, width fill ]
+        )
+        (column [ spacing 30 ]
+            (case session.user of
+                Anonymous _ ->
+                    [ paragraph [] [ text msg ]
+                    , loginButton
+                    ]
+
+                AuthorizedUser _ _ ->
+                    [ paragraph [] [ text msg ] ]
+            )
+        )
