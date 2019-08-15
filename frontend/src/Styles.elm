@@ -248,6 +248,32 @@ logo =
         (text "Sonder")
 
 
+header : Int -> String -> Element msg
+header size title =
+    el
+        ([ robotoSlab
+         , Font.bold
+         , Font.size (scaled size)
+         ]
+        )
+        (text title)
+
+
+h1 : String -> Element msg
+h1 =
+    header 6
+
+
+h2 : String -> Element msg
+h2 =
+    header 5
+
+
+h3 : String -> Element msg
+h3 =
+    header 4
+
+
 thinLogo : Element msg
 thinLogo =
     el
@@ -269,29 +295,6 @@ intro =
         (column [ spacing 30 ]
             [ paragraph []
                 [ text Content.intro
-                ]
-            , loginButton
-            ]
-        )
-
-
-unauthorizedPage : Session -> Element msg
-unauthorizedPage session =
-    column [ centerY, centerX, spacing 0, padding 200 ]
-        [ logo, unauthorized ]
-
-
-unauthorized : Element msg
-unauthorized =
-    el
-        (textFont
-            ++ textBox
-            ++ introSize
-            ++ [ paddingXY 30 30, width fill ]
-        )
-        (column [ spacing 30 ]
-            [ paragraph []
-                [ text Content.unauthorized
                 ]
             , loginButton
             ]
@@ -367,7 +370,7 @@ footerUser user =
 nav session =
     column
         [ height fill
-        , padding 30
+        , paddingXY 30 15
         , spacing 20
         ]
         [ link
@@ -576,4 +579,27 @@ error session msg =
                 AuthorizedUser _ _ ->
                     [ paragraph [] [ text msg ] ]
             )
+        )
+
+
+unauthorizedPage : Session -> Element msg
+unauthorizedPage session =
+    column [ centerY, centerX, spacing 0, padding 200 ]
+        [ logo, unauthorized ]
+
+
+unauthorized : Element msg
+unauthorized =
+    el
+        (textFont
+            ++ textBox
+            ++ introSize
+            ++ [ paddingXY 30 30, width fill ]
+        )
+        (column [ spacing 30 ]
+            [ paragraph []
+                [ text Content.unauthorized
+                ]
+            , loginButton
+            ]
         )

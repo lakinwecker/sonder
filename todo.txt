@@ -1,22 +1,23 @@
-(A) /analysis/acquire to dole out game to analyze +api +fishnet
-(A) Add a list of players with analysis with paging? +ui +django
 (A) Add a way to generate a CR report for a given player +ui +django
-(A) Get irwin network deployed as a javascript network if possible +irwin +interface
-(A) Integrate rq to process most of these background jobs
-(A) Patch fishnet to be useful for this context +CR +api +fishnet
-(A) Script to ingest data from irwin. +irwin
-(A) Script to listen to lichess for new players to process +simple +lila
-(A) We need the irwin report data modeled +db +irwin
+(A) Add paging to the list of players +ui +django
+(A) Output of html reports similar to CR txt +CR
+(B) Get elm-debug formatter working. 
+(B) /analysis/acquire to dole out game to analyze +api +fishnet
 (B) Graph / Exploratory data +CR
-(B) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
-(B) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin
-(B) Model something to replace "gameBasicActivation" (dunno what it does) +db +irwin
-(B) Model something to replace "gameReport" +db +irwin
-(B) Model something to replace "player" (seems to be used to handle alts) +db +irwin
-(B) Output of html reports similar to CR txt +CR
+(B) Integrate rq to process most of these background jobs
+(B) Patch fishnet to be useful for this context +CR +api +fishnet
+(C) Get irwin network deployed as a javascript network if possible +irwin +interface
+(C) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
+(C) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin
+(C) Model something to replace "gameBasicActivation" (dunno what it does) +db +irwin
+(C) Model something to replace "gameReport" +db +irwin
+(C) Model something to replace "player" (seems to be used to handle alts) +db +irwin
 (C) Model something to replace "playerReport" (not sure if relevant) +db +irwin
 (C) Model something to replace "positionAnalysis" (probably not used?) +db +irwin
 (C) Model something to replace "report" (unsure how used) +db +irwin
+(C) Script to ingest data from irwin. +irwin
+(C) Script to listen to lichess for new players to process +simple +lila
+(C) We need the irwin report data modeled +db +irwin
 x 2019-04-13 API Key model to allow distributed processing of analysis +api
 x 2019-04-13 Model something to replace "basicPlayerQueue" (is empty?) +db +irwin
 x 2019-04-13 Model something to replace "engineQueue" +db +irwin
@@ -36,3 +37,5 @@ x 2019-08-04 Move the database code from sonder/utils.py into an appropriate spo
 x 2019-08-04 Output of csv reports similar to CR +CR
 x 2019-08-04 Script to download PGN + metadata of games lichess +simple +lila
 x 2019-08-04 The import PGN script should work on scripts with multiple games +CR
+x 2019-08-14 Add a list of players with analysis with paging? +ui +django
+x 2019-08-14 Add a player view with their CR Reports +ui +django
