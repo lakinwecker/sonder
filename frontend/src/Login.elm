@@ -41,12 +41,15 @@ view : Model -> Session -> Element Msg
 view model session =
     column [ centerY, centerX, spacing 0, padding 200, width fill ]
         [ S.logo
-        , case model.status of
-            RedirectLoading ->
-                S.spinner
+        , (el (S.textBox ++ S.fillXY ++ [ centerY, centerX, padding 50 ])
+            (case model.status of
+                RedirectLoading ->
+                    S.spinner
 
-            RedirectFailure message ->
-                S.error session message
+                RedirectFailure message ->
+                    S.error session message
+            )
+          )
         ]
 
 

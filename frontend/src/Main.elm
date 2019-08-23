@@ -175,6 +175,22 @@ loadAuthStatus =
         }
 
 
+loadAuthIfNecessary : SubPageModel -> Cmd Msg
+loadAuthIfNecessary subModel =
+    case subModel of
+        SplashModel _ ->
+            Cmd.none
+
+        LoginModel _ ->
+            Cmd.none
+
+        UnauthorizedModel _ ->
+            Cmd.none
+
+        _ ->
+            loadAuthStatus
+
+
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
@@ -192,7 +208,7 @@ init flags url key =
         ( Model session page
         , Cmd.batch
             [ cmd
-            , loadAuthStatus
+            , (loadAuthIfNecessary page)
             ]
         )
 
@@ -292,7 +308,14 @@ update msg model =
                         Err _ ->
                             { oldSession | user = Auth.anonymousUser }
             in
-                ( { model | session = newSession }, Cmd.none )
+                ( { model | session = newSession }
+                , case newSession.user of
+                    Anonymous _ ->
+                        Nav.load "/"
+
+                    _ ->
+                        Cmd.none
+                )
 
         ( GotLoginMsg subMsg, LoginModel subModel ) ->
             subPageUpdate loginPage subMsg subModel model

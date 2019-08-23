@@ -75,7 +75,7 @@ init session _ =
 loadPlayers : Session -> Cmd Msg
 loadPlayers session =
     query
-        |> Graphql.Http.queryRequest "/analysis/graphql/"
+        |> Graphql.Http.queryRequest "/graphql/"
         |> Graphql.Http.withHeader "X-CSRFToken" session.csrfToken
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
