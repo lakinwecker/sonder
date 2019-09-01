@@ -17,12 +17,16 @@ import Sonder.Object.Player
 import Sonder.Query as Query
 
 
--- Others
+-- elm-ui
 
-import RemoteData exposing (RemoteData)
 import Element exposing (..)
 import Element.Events exposing (..)
 import Element.Input as Input
+
+
+-- Others
+
+import RemoteData exposing (RemoteData)
 import Common exposing (..)
 import Pagination
 import Styles as S
@@ -34,7 +38,7 @@ import Router
 
 pageSize : Int
 pageSize =
-    50
+    30
 
 
 type alias Player =
@@ -129,7 +133,7 @@ viewLoaded model session response =
     column (S.content ++ [ width fill ])
         [ table
             []
-            { data = response
+            { data = (Pagination.getPageList model.pageInfo response)
             , columns =
                 [ { header = S.tableHeader "Username"
                   , width = fill
@@ -146,23 +150,7 @@ viewLoaded model session response =
                 ]
             }
         , row [ width fill ]
-            [ case Pagination.hasPreviousPage model.pageInfo of
-                True ->
-                    Input.button (S.secondaryButton ++ [ alignLeft ])
-                        { onPress = Just GetPreviousPage, label = text "Prev Page" }
-
-                False ->
-                    Input.button (S.disabledButton ++ [ alignLeft ])
-                        { onPress = Nothing, label = text "Prev Page" }
-            , case Pagination.hasNextPage model.pageInfo of
-                True ->
-                    Input.button (S.secondaryButton ++ [ alignRight ])
-                        { onPress = Just GetNextPage, label = text "Next Page" }
-
-                False ->
-                    Input.button (S.disabledButton ++ [ alignRight ])
-                        { onPress = Nothing, label = text "Next Page" }
-            ]
+            (Pagination.controls model.pageInfo GetPreviousPage GetNextPage)
         ]
 
 
