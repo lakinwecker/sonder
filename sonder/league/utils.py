@@ -59,7 +59,7 @@ def download_new_games(league, _season=None):
     league_tag, _ = Tag.objects.get_or_create(name=league)
     games_to_download = []
     for season, _round in tqdm(list(product(seasons, rounds)), f"Downloading pairing games", leave=False):
-        season_tag, _ = Tag.objects.get_or_create(name=season)
+        season_tag, _ = Tag.objects.get_or_create(name=f"Season-{season}")
         for _, _, _, game_id in get_season_game_ids(league, season, rounds=[_round]):
             game, created = Game.objects.get_or_create(lichess_id=game_id)
             GameTag.objects.get_or_create(game=game, tag=league_tag)

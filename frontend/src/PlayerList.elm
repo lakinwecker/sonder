@@ -17,20 +17,22 @@ import Sonder.Object.Player
 import Sonder.Query as Query
 
 
--- elm-ui
+-- third party
 
 import Element exposing (..)
 import Element.Events exposing (..)
 import Element.Input as Input
+import FontAwesome.Solid as Solid
+import FontAwesome.Icon as Icon
+import RemoteData exposing (RemoteData)
+import Http
 
 
 -- Others
 
-import RemoteData exposing (RemoteData)
 import Common exposing (..)
 import Pagination
 import Styles as S
-import Http
 import Auth
 import Sonder.Interface
 import Router
@@ -62,17 +64,25 @@ type alias PageInfo =
 type alias Model =
     { pageInfo : PageInfo
     , session : Session
+    , usernameSearch : String
     }
 
 
-query : PageInfo -> SelectionSet PlayerList RootQuery
-query pageInfo =
+query : Model -> SelectionSet PlayerList RootQuery
+query model =
     (Query.players
         (\optionals ->
             { optionals
-                | offset = Present pageInfo.offset
-                , limit = Present (pageInfo.pageSize + 1)
+                | offset = Present model.pageInfo.offset
+                , limit = Present (model.pageInfo.pageSize + 1)
                 , ordering = Present "username"
+                , username_Icontains =
+                    case model.usernameSearch of
+                        "" ->
+                            Absent
+
+                        _ ->
+                            Present model.usernameSearch
             }
         )
         playerSelection
@@ -95,19 +105,23 @@ init session _ =
             , offset = 0
             , pageSize = pageSize
             }
+
+        model =
+            { pageInfo = pageInfo
+            , session = session
+            , usernameSearch = ""
+            }
     in
-        ( { pageInfo = pageInfo
-          , session = session
-          }
-        , loadPlayers pageInfo session
+        ( model
+        , loadPlayers model
         )
 
 
-loadPlayers : PageInfo -> Session -> Cmd Msg
-loadPlayers pageInfo session =
-    query pageInfo
+loadPlayers : Model -> Cmd Msg
+loadPlayers model =
+    query model
         |> Graphql.Http.queryRequest "/graphql/"
-        |> Graphql.Http.withHeader "X-CSRFToken" session.csrfToken
+        |> Graphql.Http.withHeader "X-CSRFToken" model.session.csrfToken
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
@@ -131,7 +145,25 @@ playerLink player =
 viewLoaded : Model -> Session -> PlayerList -> Element Msg
 viewLoaded model session response =
     column (S.content ++ [ width fill ])
-        [ table
+        [ row [ width fill ]
+            [ Input.search
+                [ width fill ]
+                { onChange = GotUsernameSearch
+                , text = model.usernameSearch
+                , placeholder =
+                    Just
+                        (Input.placeholder
+                            []
+                            (row []
+                                [ html (Icon.viewStyled [] Solid.search)
+                                , text "Username"
+                                ]
+                            )
+                        )
+                , label = Input.labelHidden "username"
+                }
+            ]
+        , table
             []
             { data = (Pagination.getPageList model.pageInfo response)
             , columns =
@@ -156,6 +188,7 @@ viewLoaded model session response =
 
 type Msg
     = GotResponse PageResponse
+    | GotUsernameSearch String
     | GetPreviousPage
     | GetNextPage
 
@@ -171,17 +204,25 @@ update msg model =
         GotResponse pageResponse ->
             ( { model | pageInfo = (updatePage model.pageInfo pageResponse) }, Cmd.none )
 
+        GotUsernameSearch username ->
+            let
+                newModel =
+                    { model | usernameSearch = username }
+            in
+                ( newModel, loadPlayers newModel )
+
         GetNextPage ->
             case model.pageInfo.listResponse of
                 RemoteData.Success playerList ->
                     let
                         nextPage =
                             Pagination.nextPage model.pageInfo
+
+                        newModel =
+                            { model | pageInfo = nextPage }
                     in
                         if Pagination.hasNextPage model.pageInfo then
-                            ( { model | pageInfo = nextPage }
-                            , loadPlayers nextPage model.session
-                            )
+                            ( newModel, loadPlayers newModel )
                         else
                             ( model, Cmd.none )
 
@@ -194,11 +235,12 @@ update msg model =
                     let
                         prevPage =
                             Pagination.prevPage model.pageInfo
+
+                        newModel =
+                            { model | pageInfo = prevPage }
                     in
                         if Pagination.hasPreviousPage model.pageInfo then
-                            ( { model | pageInfo = prevPage }
-                            , loadPlayers prevPage model.session
-                            )
+                            ( newModel, loadPlayers newModel )
                         else
                             ( model, Cmd.none )
 

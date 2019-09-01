@@ -107,6 +107,7 @@ AUTHLIB_OAUTH_CLIENTS = {
         'client_kwargs': { }
     }
 }
+
 GRAPHENE = {
     'SCHEMA': 'sonder.schema.schema',
     'MIDDLEWARE': [

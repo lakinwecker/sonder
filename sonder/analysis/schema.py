@@ -70,21 +70,32 @@ FishnetJob = {
 }
 
 
+class PlayerFilter(FilterSet):
+    class Meta:
+        model = models.Player
+        fields = {
+            "id": ("exact", ),
+            "username": ("icontains", "iexact"),
+        }
+
+    @property
+    def qs(self):
+        # The query context can be found in self.request.
+        return super(PlayerFilter, self).qs.prefetch_related(
+            'games_as_white', 'games_as_black'
+        )
+
 class Player(DjangoObjectType, LoginRequired):
     class Meta:
         model = models.Player
         pagination = LimitOffsetGraphqlPagination(
             default_limit=25, ordering="username"
         ) # ordering can be: string, tuple or list
-        filter_fields = {
-            "id": ("exact", ),
-            "username": ("icontains", "iexact"),
-        }
 
     totalGames = graphene.Int(required=True)
 
     def resolve_totalGames(parent, info):
-        return len(parent.games_as_white.all()) + len(parent.games_as_black.all())
+        return parent.games_as_white.count() + parent.games_as_black.count()
 
 
 
@@ -104,38 +115,7 @@ class Query(ObjectType, LoginRequired):
     players = DjangoFilterPaginateListField(
         Player,
         required=True,
-        pagination=LimitOffsetGraphqlPagination()
+        pagination=LimitOffsetGraphqlPagination(),
+        filterset_class=PlayerFilter
     )
 
-    def resolve_player(self, info, **kwargs):
-        if info.context.user.is_anonymous:
-            return None
-        id = kwargs.get('id')
-        username = kwargs.get('username')
-
-        if id is not None:
-            return models.Player.objects.get(pk=id)
-
-        if username is not None:
-            return models.Player.objects.get(username=username)
-
-        return None
-
-    def resolve_relayPlayers(self, info, **kwargs):
-        return PlayerFilter(kwargs).qs
-
-"""
-    def resolve_players(self, info, **kwargs):
-        if info.context.user.is_anonymous:
-            return None
-        return models.Player.objects.all() \
-                .order_by('username') \
-                .prefetch_related('games_as_white', 'games_as_black')
-
-
-    def resolve_games(self, info, **kwargs):
-        if info.context.user.is_anonymous:
-            return None
-        return models.Game.objects.all().select_related('white_player', 'black_player')
-
-"""
