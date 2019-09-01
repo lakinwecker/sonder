@@ -23,6 +23,7 @@ rq = "*"
 tqdm = "*"
 graphene-django = "*"
 django-filter = "*"
+graphene-django-extras = "*"
 
 [requires]
 python_version = "3.7"

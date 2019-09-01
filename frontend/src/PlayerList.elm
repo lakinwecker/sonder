@@ -5,14 +5,15 @@ module PlayerList exposing (..)
 import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
-import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, with)
+import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument(..))
 
 
--- Sonder APi
+-- Sonder API
 
 import Sonder.Interface
 import Sonder.Object
-import Sonder.Object.Player as Player
+import Sonder.Object.Player
 import Sonder.Query as Query
 
 
@@ -20,12 +21,20 @@ import Sonder.Query as Query
 
 import RemoteData exposing (RemoteData)
 import Element exposing (..)
+import Element.Events exposing (..)
+import Element.Input as Input
 import Common exposing (..)
+import Pagination
 import Styles as S
 import Http
 import Auth
 import Sonder.Interface
 import Router
+
+
+pageSize : Int
+pageSize =
+    50
 
 
 type alias Player =
@@ -34,69 +43,78 @@ type alias Player =
     }
 
 
-totalGamesStr : Player -> String
-totalGamesStr player =
-    String.fromInt player.totalGames
+type alias PlayerList =
+    List Player
 
 
-type alias Response =
-    Maybe (List (Maybe Player))
+type alias PageResponse =
+    Pagination.Response (Graphql.Http.Error PlayerList) PlayerList
 
 
-type alias ModelResponse =
-    RemoteData (Graphql.Http.Error Response) Response
+type alias PageInfo =
+    Pagination.Page (Graphql.Http.Error PlayerList) Player
 
 
 type alias Model =
-    { players : ModelResponse
+    { pageInfo : PageInfo
+    , session : Session
     }
 
 
-query : SelectionSet Response RootQuery
-query =
-    Query.players playerInfoSelection
+query : PageInfo -> SelectionSet PlayerList RootQuery
+query pageInfo =
+    (Query.players
+        (\optionals ->
+            { optionals
+                | offset = Present pageInfo.offset
+                , limit = Present (pageInfo.pageSize + 1)
+                , ordering = Present "username"
+            }
+        )
+        playerSelection
+    )
+        |> SelectionSet.nonNullElementsOrFail
 
 
-playerInfoSelection : SelectionSet Player Sonder.Object.Player
-playerInfoSelection =
+playerSelection : SelectionSet Player Sonder.Object.Player
+playerSelection =
     SelectionSet.map2 Player
-        Player.username
-        Player.totalGames
+        Sonder.Object.Player.username
+        Sonder.Object.Player.totalGames
 
 
 init : Session -> NoArgs -> ( Model, Cmd Msg )
 init session _ =
-    ( { players = RemoteData.Loading
-      }
-    , loadPlayers session
-    )
+    let
+        pageInfo =
+            { listResponse = RemoteData.Loading
+            , offset = 0
+            , pageSize = pageSize
+            }
+    in
+        ( { pageInfo = pageInfo
+          , session = session
+          }
+        , loadPlayers pageInfo session
+        )
 
 
-loadPlayers : Session -> Cmd Msg
-loadPlayers session =
-    query
+loadPlayers : PageInfo -> Session -> Cmd Msg
+loadPlayers pageInfo session =
+    query pageInfo
         |> Graphql.Http.queryRequest "/graphql/"
         |> Graphql.Http.withHeader "X-CSRFToken" session.csrfToken
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
+totalGamesStr : Player -> String
+totalGamesStr player =
+    String.fromInt player.totalGames
+
+
 view : Model -> Session -> Element Msg
 view pageModel session =
-    S.remoteDataPage viewLoaded pageModel session pageModel.players
-
-
-maybeAttr :
-    (Player -> a)
-    -> (a -> Element Msg)
-    -> Maybe Player
-    -> Element Msg
-maybeAttr toA toElement player =
-    case player of
-        Nothing ->
-            none
-
-        Just p ->
-            toElement (toA p)
+    S.remoteDataPage viewLoaded pageModel session pageModel.pageInfo.listResponse
 
 
 playerLink : Player -> Element Msg
@@ -106,42 +124,98 @@ playerLink player =
         { url = "/players/" ++ player.username, label = text player.username }
 
 
-viewLoaded : Model -> Session -> Response -> Element Msg
-viewLoaded pageModel session maybePlayers =
-    case maybePlayers of
-        Nothing ->
-            none
+viewLoaded : Model -> Session -> PlayerList -> Element Msg
+viewLoaded model session response =
+    column (S.content ++ [ width fill ])
+        [ table
+            []
+            { data = response
+            , columns =
+                [ { header = S.tableHeader "Username"
+                  , width = fill
+                  , view =
+                        S.tableCell [] playerLink
+                  }
+                , { header = S.tableHeader "# Games"
+                  , width = fill
+                  , view =
+                        \player ->
+                            totalGamesStr player
+                                |> S.tableCell [] text
+                  }
+                ]
+            }
+        , row [ width fill ]
+            [ case Pagination.hasPreviousPage model.pageInfo of
+                True ->
+                    Input.button (S.secondaryButton ++ [ alignLeft ])
+                        { onPress = Just GetPreviousPage, label = text "Prev Page" }
 
-        Just players ->
-            table
-                S.content
-                { data = players
-                , columns =
-                    [ { header = S.tableHeader "Username"
-                      , width = fill
-                      , view =
-                            \person ->
-                                maybeAttr identity (S.tableCell [] playerLink) person
-                      }
-                    , { header = S.tableHeader "# Games"
-                      , width = fill
-                      , view =
-                            \person ->
-                                maybeAttr totalGamesStr (S.tableCell [] text) person
-                      }
-                    ]
-                }
+                False ->
+                    Input.button (S.disabledButton ++ [ alignLeft ])
+                        { onPress = Nothing, label = text "Prev Page" }
+            , case Pagination.hasNextPage model.pageInfo of
+                True ->
+                    Input.button (S.secondaryButton ++ [ alignRight ])
+                        { onPress = Just GetNextPage, label = text "Next Page" }
+
+                False ->
+                    Input.button (S.disabledButton ++ [ alignRight ])
+                        { onPress = Nothing, label = text "Next Page" }
+            ]
+        ]
 
 
 type Msg
-    = GotResponse ModelResponse
+    = GotResponse PageResponse
+    | GetPreviousPage
+    | GetNextPage
+
+
+updatePage : PageInfo -> PageResponse -> PageInfo
+updatePage pageInfo pageResponse =
+    { pageInfo | listResponse = pageResponse }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotResponse players ->
-            ( { model | players = players }, Cmd.none )
+        GotResponse pageResponse ->
+            ( { model | pageInfo = (updatePage model.pageInfo pageResponse) }, Cmd.none )
+
+        GetNextPage ->
+            case model.pageInfo.listResponse of
+                RemoteData.Success playerList ->
+                    let
+                        nextPage =
+                            Pagination.nextPage model.pageInfo
+                    in
+                        if Pagination.hasNextPage model.pageInfo then
+                            ( { model | pageInfo = nextPage }
+                            , loadPlayers nextPage model.session
+                            )
+                        else
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GetPreviousPage ->
+            case model.pageInfo.listResponse of
+                RemoteData.Success playerList ->
+                    let
+                        prevPage =
+                            Pagination.prevPage model.pageInfo
+                    in
+                        if Pagination.hasPreviousPage model.pageInfo then
+                            ( { model | pageInfo = prevPage }
+                            , loadPlayers prevPage model.session
+                            )
+                        else
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 

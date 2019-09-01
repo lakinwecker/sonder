@@ -33,6 +33,13 @@ defaultBorder =
     { bottom = 0, left = 0, right = 0, top = 0 }
 
 
+bottomStripe : Color -> List (Attribute msg)
+bottomStripe color =
+    [ Border.widthEach { defaultBorder | bottom = 4 }
+    , Border.color color
+    ]
+
+
 scaled : Int -> Int
 scaled x =
     round (modular 14 1.25 x)
@@ -84,9 +91,11 @@ smallLogoFont =
 
 heroBox : List (Attribute msg)
 heroBox =
-    [ Background.color (background C.primaryShade3)
-    , Font.color C.quaternaryShade2
-    ]
+    ([ Background.color (background C.primaryShade3)
+     , Font.color C.quaternaryShade2
+     ]
+        ++ bottomStripe C.charcoalBlue2
+    )
 
 
 textFont : List (Attribute msg)
@@ -146,18 +155,36 @@ centerXY =
     [ centerX, centerY ]
 
 
-button : List (Attribute msg)
-button =
-    [ Background.color C.queenBlue2
-    , Border.color C.charcoalBlue1
-    , Border.rounded 10
-    , Border.width 4
-    , Font.color C.celestialBlue0
-    , paddingXY 50 20
+baseButton : Color -> Color -> Color -> List (Attribute msg)
+baseButton backgroundC border font =
+    [ Background.color backgroundC
+    , Border.color border
+    , Border.widthEach
+        { bottom = 4
+        , top = 0
+        , left = 0
+        , right = 0
+        }
+    , Font.color font
+    , paddingXY 20 10
     , Font.variant Font.smallCaps
     , coustard
-    , alignRight
     ]
+
+
+button : List (Attribute msg)
+button =
+    baseButton C.queenBlue2 C.charcoalBlue1 C.celestialBlue0
+
+
+secondaryButton : List (Attribute msg)
+secondaryButton =
+    baseButton C.celestialBlue1 C.charcoalBlue1 C.primaryShade3
+
+
+disabledButton : List (Attribute msg)
+disabledButton =
+    baseButton C.charcoalBlue0 C.charcoalBlue1 C.primaryShade1
 
 
 spinIcon : List (Attribute msg) -> Icon.Icon -> Element msg
@@ -387,9 +414,7 @@ sidebar session =
     column
         (textFont
             ++ textBox
-            ++ [ height fill
-               , Border.widthEach { defaultBorder | right = 2 }
-               ]
+            ++ [ height fill ]
         )
         [ row [ height fill ] [ nav session ]
         , footer session
@@ -399,12 +424,12 @@ sidebar session =
 tableHeader : String -> Element msg
 tableHeader val =
     el
-        [ robotoSlab
-        , paddingXY 10 10
-        , Font.bold
-        , Border.widthEach { defaultBorder | bottom = 2 }
-        , Border.color C.secondaryShade2
-        ]
+        ([ robotoSlab
+         , paddingXY 10 10
+         , Font.bold
+         ]
+            ++ bottomStripe C.secondaryShade2
+        )
         (text val)
 
 
@@ -519,6 +544,9 @@ coloursTable pageModel session =
                         , c C.ternaryShade0 "Ternary 0"
                         , c C.quaternaryShade0 "Quaternary 0"
                         , c C.quinaryShade0 "Quinary 0"
+                        , c C.queenBlue0 "Queen Blue 0"
+                        , c C.charcoalBlue0 "Charcoal Blue 0"
+                        , c C.celestialBlue0 "Celestial Blue 0"
                         ]
                     , row
                         ([ spacing 10 ]
@@ -529,6 +557,9 @@ coloursTable pageModel session =
                         , c C.ternaryShade1 "Ternary 1"
                         , c C.quaternaryShade1 "Quaternary 1"
                         , c C.quinaryShade1 "Quinary 1"
+                        , c C.queenBlue1 "Queen Blue 1"
+                        , c C.charcoalBlue1 "Charcoal Blue 1"
+                        , c C.celestialBlue1 "Celestial Blue 1"
                         ]
                     , row
                         ([ spacing 10 ]
@@ -539,6 +570,9 @@ coloursTable pageModel session =
                         , c C.ternaryShade2 "Ternary 2"
                         , c C.quaternaryShade2 "Quaternary 2"
                         , c C.quinaryShade2 "Quinary 2"
+                        , c C.queenBlue2 "Queen Blue 2"
+                        , c C.charcoalBlue2 "Charcoal Blue 2"
+                        , c C.celestialBlue2 "Celestial Blue 2"
                         ]
                     , row
                         ([ spacing 10 ]
@@ -549,6 +583,9 @@ coloursTable pageModel session =
                         , c C.ternaryShade3 "Ternary 3"
                         , c C.quaternaryShade3 "Quaternary 3"
                         , c C.quinaryShade3 "Quinary 3"
+                        , c C.queenBlue3 "Queen Blue 3"
+                        , c C.charcoalBlue3 "Charcoal Blue 3"
+                        , c C.celestialBlue3 "Celestial Blue 3"
                         ]
                     ]
                   )

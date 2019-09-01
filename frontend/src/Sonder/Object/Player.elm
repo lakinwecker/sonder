@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.Player exposing (GamesAsBlackOptionalArguments, GamesAsWhiteOptionalArguments, gamesAsBlack, gamesAsWhite, id, totalGames, username)
+module Sonder.Object.Player exposing (gamesAsBlack, gamesAsWhite, id, totalGames, username)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,8 +19,7 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-{-| The ID of the object.
--}
+{-| -}
 id : SelectionSet Sonder.ScalarCodecs.Id Sonder.Object.Player
 id =
     Object.selectionForField "ScalarCodecs.Id" "id" [] (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapCodecs |> .codecId |> .decoder)
@@ -32,52 +31,16 @@ username =
     Object.selectionForField "String" "username" [] Decode.string
 
 
-type alias GamesAsWhiteOptionalArguments =
-    { before : OptionalArgument String
-    , after : OptionalArgument String
-    , first : OptionalArgument Int
-    , last : OptionalArgument Int
-    , whitePlayer_Username : OptionalArgument Sonder.ScalarCodecs.Id
-    , blackPlayer_Username : OptionalArgument Sonder.ScalarCodecs.Id
-    }
+{-| -}
+gamesAsWhite : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (List decodesTo) Sonder.Object.Player
+gamesAsWhite object_ =
+    Object.selectionForCompositeField "gamesAsWhite" [] object_ (identity >> Decode.list)
 
 
 {-| -}
-gamesAsWhite : (GamesAsWhiteOptionalArguments -> GamesAsWhiteOptionalArguments) -> SelectionSet decodesTo Sonder.Object.GameConnection -> SelectionSet decodesTo Sonder.Object.Player
-gamesAsWhite fillInOptionals object_ =
-    let
-        filledInOptionals =
-            fillInOptionals { before = Absent, after = Absent, first = Absent, last = Absent, whitePlayer_Username = Absent, blackPlayer_Username = Absent }
-
-        optionalArgs =
-            [ Argument.optional "before" filledInOptionals.before Encode.string, Argument.optional "after" filledInOptionals.after Encode.string, Argument.optional "first" filledInOptionals.first Encode.int, Argument.optional "last" filledInOptionals.last Encode.int, Argument.optional "whitePlayer_Username" filledInOptionals.whitePlayer_Username (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId), Argument.optional "blackPlayer_Username" filledInOptionals.blackPlayer_Username (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId) ]
-                |> List.filterMap identity
-    in
-    Object.selectionForCompositeField "gamesAsWhite" optionalArgs object_ identity
-
-
-type alias GamesAsBlackOptionalArguments =
-    { before : OptionalArgument String
-    , after : OptionalArgument String
-    , first : OptionalArgument Int
-    , last : OptionalArgument Int
-    , whitePlayer_Username : OptionalArgument Sonder.ScalarCodecs.Id
-    , blackPlayer_Username : OptionalArgument Sonder.ScalarCodecs.Id
-    }
-
-
-{-| -}
-gamesAsBlack : (GamesAsBlackOptionalArguments -> GamesAsBlackOptionalArguments) -> SelectionSet decodesTo Sonder.Object.GameConnection -> SelectionSet decodesTo Sonder.Object.Player
-gamesAsBlack fillInOptionals object_ =
-    let
-        filledInOptionals =
-            fillInOptionals { before = Absent, after = Absent, first = Absent, last = Absent, whitePlayer_Username = Absent, blackPlayer_Username = Absent }
-
-        optionalArgs =
-            [ Argument.optional "before" filledInOptionals.before Encode.string, Argument.optional "after" filledInOptionals.after Encode.string, Argument.optional "first" filledInOptionals.first Encode.int, Argument.optional "last" filledInOptionals.last Encode.int, Argument.optional "whitePlayer_Username" filledInOptionals.whitePlayer_Username (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId), Argument.optional "blackPlayer_Username" filledInOptionals.blackPlayer_Username (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId) ]
-                |> List.filterMap identity
-    in
-    Object.selectionForCompositeField "gamesAsBlack" optionalArgs object_ identity
+gamesAsBlack : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (List decodesTo) Sonder.Object.Player
+gamesAsBlack object_ =
+    Object.selectionForCompositeField "gamesAsBlack" [] object_ (identity >> Decode.list)
 
 
 totalGames : SelectionSet Int Sonder.Object.Player

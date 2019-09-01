@@ -7,6 +7,7 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
+from graphene_django.views import GraphQLView
 
 from authlib.django.client import OAuth
 from .models import OAuth2Token, UserPreferences
@@ -77,3 +78,6 @@ def auth_status(request, _none):
     return {
         "type": "anonymous",
     }
+
+class PrivateGraphQLView(GraphQLView):
+    pass

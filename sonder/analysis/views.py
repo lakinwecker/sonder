@@ -4,10 +4,6 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from graphene_django.views import GraphQLView
-
-
 from .. import jsonapi
 from .schema import (
     FishnetRequest,
@@ -32,5 +28,3 @@ def acquire(request, fishnet_request):
     return HttpResponse('foo')
 
 
-class PrivateGraphQLView(LoginRequiredMixin, GraphQLView):
-    pass

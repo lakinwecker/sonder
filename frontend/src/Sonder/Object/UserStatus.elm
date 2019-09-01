@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.GameEdge exposing (cursor, node)
+module Sonder.Object.UserStatus exposing (preferences, status)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -11,6 +11,7 @@ import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
+import Sonder.Enum.AuthStatus
 import Sonder.InputObject
 import Sonder.Interface
 import Sonder.Object
@@ -19,15 +20,11 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-{-| The item at the end of the edge
--}
-node : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (Maybe decodesTo) Sonder.Object.GameEdge
-node object_ =
-    Object.selectionForCompositeField "node" [] object_ (identity >> Decode.nullable)
+status : SelectionSet (Maybe Sonder.Enum.AuthStatus.AuthStatus) Sonder.Object.UserStatus
+status =
+    Object.selectionForField "(Maybe Enum.AuthStatus.AuthStatus)" "status" [] (Sonder.Enum.AuthStatus.decoder |> Decode.nullable)
 
 
-{-| A cursor for use in pagination
--}
-cursor : SelectionSet String Sonder.Object.GameEdge
-cursor =
-    Object.selectionForField "String" "cursor" [] Decode.string
+preferences : SelectionSet decodesTo Sonder.Object.Preferences -> SelectionSet (Maybe decodesTo) Sonder.Object.UserStatus
+preferences object_ =
+    Object.selectionForCompositeField "preferences" [] object_ (identity >> Decode.nullable)

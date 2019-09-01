@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.contrib.postgres.fields import JSONField
 from django.utils.crypto import get_random_string
+from django.contrib.auth.models import User
 
 def create_api_token():
     return get_random_string(length=12)
@@ -171,3 +172,16 @@ class IrwinReportRequiredGame(models.Model):
         return None
 
 
+class CRReport(models.Model):
+    player = models.ForeignKey(
+        Player,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=255, default="")
+    completed = models.BooleanField(default=False)
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    game_ids = JSONField()
+
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)

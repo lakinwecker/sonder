@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Query exposing (GameRequiredArguments, PlayerRequiredArguments, game, games, player, players)
+module Sonder.Query exposing (PlayerRequiredArguments, PlayersOptionalArguments, player, players, userStatus)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -28,22 +28,36 @@ player requiredArgs object_ =
     Object.selectionForCompositeField "player" [ Argument.required "username" requiredArgs.username Encode.string ] object_ (identity >> Decode.nullable)
 
 
-players : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
-players object_ =
-    Object.selectionForCompositeField "players" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+type alias PlayersOptionalArguments =
+    { id : OptionalArgument Float
+    , username_Icontains : OptionalArgument String
+    , username_Iexact : OptionalArgument String
+    , limit : OptionalArgument Int
+    , offset : OptionalArgument Int
+    , ordering : OptionalArgument String
+    }
 
 
-type alias GameRequiredArguments =
-    { id : Sonder.ScalarCodecs.Id }
+{-| Player list
 
+  - limit - Number of results to return per page. Default 'default\_limit': None, and 'max\_limit': None
+  - offset - The initial index from which to return the results. Default: 0
+  - ordering - A string or comma delimited string values that indicate the default ordering when obtaining lists of objects.
 
-{-| The ID of the object
 -}
-game : GameRequiredArguments -> SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (Maybe decodesTo) RootQuery
-game requiredArgs object_ =
-    Object.selectionForCompositeField "game" [ Argument.required "id" requiredArgs.id (Sonder.ScalarCodecs.codecs |> Sonder.Scalar.unwrapEncoder .codecId) ] object_ (identity >> Decode.nullable)
+players : (PlayersOptionalArguments -> PlayersOptionalArguments) -> SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (List (Maybe decodesTo)) RootQuery
+players fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { id = Absent, username_Icontains = Absent, username_Iexact = Absent, limit = Absent, offset = Absent, ordering = Absent }
+
+        optionalArgs =
+            [ Argument.optional "id" filledInOptionals.id Encode.float, Argument.optional "username_Icontains" filledInOptionals.username_Icontains Encode.string, Argument.optional "username_Iexact" filledInOptionals.username_Iexact Encode.string, Argument.optional "limit" filledInOptionals.limit Encode.int, Argument.optional "offset" filledInOptionals.offset Encode.int, Argument.optional "ordering" filledInOptionals.ordering Encode.string ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "players" optionalArgs object_ (identity >> Decode.nullable >> Decode.list)
 
 
-games : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
-games object_ =
-    Object.selectionForCompositeField "games" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+userStatus : SelectionSet decodesTo Sonder.Object.UserStatus -> SelectionSet (Maybe decodesTo) RootQuery
+userStatus object_ =
+    Object.selectionForCompositeField "userStatus" [] object_ (identity >> Decode.nullable)

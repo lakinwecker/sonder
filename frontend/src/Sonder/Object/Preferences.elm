@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.GameConnection exposing (edges, pageInfo)
+module Sonder.Object.Preferences exposing (background)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,15 +19,6 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-{-| Pagination data for this connection.
--}
-pageInfo : SelectionSet decodesTo Sonder.Object.PageInfo -> SelectionSet decodesTo Sonder.Object.GameConnection
-pageInfo object_ =
-    Object.selectionForCompositeField "pageInfo" [] object_ identity
-
-
-{-| Contains the nodes in this connection.
--}
-edges : SelectionSet decodesTo Sonder.Object.GameEdge -> SelectionSet (List (Maybe decodesTo)) Sonder.Object.GameConnection
-edges object_ =
-    Object.selectionForCompositeField "edges" [] object_ (identity >> Decode.nullable >> Decode.list)
+background : SelectionSet (Maybe String) Sonder.Object.Preferences
+background =
+    Object.selectionForField "(Maybe String)" "background" [] (Decode.string |> Decode.nullable)

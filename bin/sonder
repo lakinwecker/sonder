@@ -111,9 +111,10 @@ def cr_import(database, analysis_source, stockfish_version):
 
 @cr.command(name='report')
 @click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')
-def cr_report(gameids):
-    from sonder.cr import cr_report
-    cr_report(gameids.split())
+@click.option('--name', required=True, help='The name of the report')
+def cr_txt_report(gameids, name):
+    from sonder.cr import cr_text_report
+    cr_text_report(gameids.split(), name)
 
 @cr.command(name='game-cps-debug')
 @click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')

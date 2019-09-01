@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sonder.analysis',
     'sonder.frontend',
-    'graphene_django'
+    'graphene_django',
 ]
 
 MIDDLEWARE = [
@@ -108,5 +108,8 @@ AUTHLIB_OAUTH_CLIENTS = {
     }
 }
 GRAPHENE = {
-    'SCHEMA': 'sonder.analysis.schema.schema'
+    'SCHEMA': 'sonder.schema.schema',
+    'MIDDLEWARE': [
+        'graphene_django_extras.ExtraGraphQLDirectiveMiddleware'
+    ]
 }
