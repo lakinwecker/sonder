@@ -8,7 +8,7 @@ prospector = "*"
 autopep8 = "*"
 
 [packages]
-django = "==2.2.*"
+django = "==3.0.*"
 psycopg2 = "*"
 honcho = "*"
 gunicorn = "*"
