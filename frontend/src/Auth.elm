@@ -4,7 +4,6 @@ import Element exposing (..)
 import Common exposing (..)
 import Json.Decode exposing (Decoder, field, string, oneOf, succeed, at)
 import Json.Decode.Extra exposing (when, andMap)
-import Http
 
 
 is : a -> a -> Bool

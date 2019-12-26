@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.VerifyScalarCodecs exposing (placeholder)
+module Sonder.VerifyScalarCodecs exposing (..)
 
 
 placeholder : String

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Enum.AuthStatus exposing (AuthStatus(..), decoder, fromString, list, toString)
+module Sonder.Enum.AuthStatus exposing (..)
 
 import Json.Decode as Decode exposing (Decoder)
 

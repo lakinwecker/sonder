@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.Player exposing (gamesAsBlack, gamesAsWhite, id, totalGames, username)
+module Sonder.Object.Player exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -41,6 +41,12 @@ gamesAsWhite object_ =
 gamesAsBlack : SelectionSet decodesTo Sonder.Object.Game -> SelectionSet (List decodesTo) Sonder.Object.Player
 gamesAsBlack object_ =
     Object.selectionForCompositeField "gamesAsBlack" [] object_ (identity >> Decode.list)
+
+
+{-| -}
+crreportSet : SelectionSet decodesTo Sonder.Object.CRReport -> SelectionSet (List decodesTo) Sonder.Object.Player
+crreportSet object_ =
+    Object.selectionForCompositeField "crreportSet" [] object_ (identity >> Decode.list)
 
 
 totalGames : SelectionSet Int Sonder.Object.Player

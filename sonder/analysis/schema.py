@@ -12,6 +12,7 @@ from graphene_django_extras import DjangoFilterPaginateListField
 from graphene_django_extras.paginations import LimitOffsetGraphqlPagination
 
 from . import models
+from .. import cr
 
 # TODO: welp, this wasn't nearly as succinct as I was hoping. :P
 FishnetRequest = {
@@ -69,6 +70,57 @@ FishnetJob = {
     }
 }
 
+class CPLoss(ObjectType):
+    title = graphene.String(required=True)
+    count = graphene.Int(required=True)
+
+class CRReport(DjangoObjectType, LoginRequired):
+    class Meta:
+        model = models.CRReport
+        filter_fields = {
+            'player__username': ('icontains', 'iexact'),
+            'type': ('iexact',),
+            'name': ('icontains', 'iexact',),
+        }
+        fields = [
+            'player', 'report_type', 'completed', 'requester',
+            'sample_size', 'sample_total_cpl',
+            't1_total', 't1_count', 't2_total', 't2_count', 't3_total', 't3_count',
+            'min_rating', 'max_rating',
+            'cp_loss_total',
+
+        ]
+
+    t1_percentage = graphene.Float(required=True)
+    def resolve_t1_percentage(parent, info):
+        return float(parent.t1_count) / float(parent.t1_total)
+
+    t2_percentage = graphene.Float(required=True)
+    def resolve_t2_percentage(parent, info):
+        return float(parent.t2_count) / float(parent.t2_total)
+
+    t3_percentage = graphene.Float(required=True)
+    def resolve_t3_percentage(parent, info):
+        return float(parent.t3_count) / float(parent.t3_total)
+
+    game_list =  graphene.List(graphene.NonNull(graphene.String), required=True)
+    def resolve_game_list(parent, info):
+        return parent.game_list
+
+    cp_loss_count =  graphene.List(graphene.NonNull(CPLoss), required=True)
+    def resolve_cp_loss_count(parent, info):
+        return [ {"title": k, "count": parent['cp_loss_count'][k]} for k in cr.cp_loss_names ]
+
+
+
+class Game(DjangoObjectType, LoginRequired):
+    class Meta:
+        model = models.Game
+        filter_fields = [
+            'white_player__username',
+            'black_player__username',
+        ]
+
 
 class PlayerFilter(FilterSet):
     class Meta:
@@ -97,16 +149,6 @@ class Player(DjangoObjectType, LoginRequired):
     def resolve_totalGames(parent, info):
         return parent.games_as_white.count() + parent.games_as_black.count()
 
-
-
-class Game(DjangoObjectType, LoginRequired):
-    class Meta:
-        model = models.Game
-        filter_fields = [
-            'white_player__username',
-            'black_player__username',
-        ]
-
 class Query(ObjectType, LoginRequired):
     player = graphene.Field(
         Player,
@@ -118,4 +160,18 @@ class Query(ObjectType, LoginRequired):
         pagination=LimitOffsetGraphqlPagination(),
         filterset_class=PlayerFilter
     )
+
+    def resolve_player(self, info, **kwargs):
+        if info.context.user.is_anonymous:
+            return None
+        id = kwargs.get('id')
+        username = kwargs.get('username')
+
+        if id is not None:
+            return models.Player.objects.get(pk=id)
+
+        if username is not None:
+            return models.Player.objects.get(username=username)
+
+        return None
 

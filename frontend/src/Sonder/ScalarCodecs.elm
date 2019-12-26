@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.ScalarCodecs exposing (Id, JSONString, codecs)
+module Sonder.ScalarCodecs exposing (..)
 
 import Json.Decode as Decode exposing (Decoder)
 import Sonder.Scalar exposing (defaultCodecs)

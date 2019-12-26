@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Union exposing (placeholder)
+module Sonder.Union exposing (..)
 
 
 placeholder : String

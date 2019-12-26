@@ -24,6 +24,7 @@ tqdm = "*"
 graphene-django = "*"
 django-filter = "*"
 graphene-django-extras = "*"
+redis = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.Preferences exposing (..)
+module Sonder.Object.CPLoss exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,6 +19,11 @@ import Sonder.ScalarCodecs
 import Sonder.Union
 
 
-background : SelectionSet (Maybe String) Sonder.Object.Preferences
-background =
-    Object.selectionForField "(Maybe String)" "background" [] (Decode.string |> Decode.nullable)
+title : SelectionSet String Sonder.Object.CPLoss
+title =
+    Object.selectionForField "String" "title" [] Decode.string
+
+
+count : SelectionSet Int Sonder.Object.CPLoss
+count =
+    Object.selectionForField "Int" "count" [] Decode.int

@@ -16,26 +16,32 @@ alpha color a =
 -- Coolors Exported Palette - coolors.co/00008a-4c74e3-05f8fc-8426f8-ff7a3f
 
 
+white : Color
 white =
     rgba255 255 255 255 1
 
 
+black : Color
 black =
     rgba255 0 0 0 1
 
 
+grey : Color
 grey =
     rgba255 90 90 90 1
 
 
+lightGrey : Color
 lightGrey =
     rgba255 230 230 230 1
 
 
+primaryShade0 : Color
 primaryShade0 =
     rgba255 232 232 234 1
 
 
+secondaryShade0 : Color
 secondaryShade0 =
     rgba255 238 238 238 1
 

@@ -307,6 +307,7 @@ thinLogo =
         (smallLogoFont
             ++ heroBox
             ++ [ paddingXY 30 10, width fill ]
+            ++ bottomStripe C.queenBlue3
         )
         (text "Sonder")
 
@@ -414,7 +415,7 @@ sidebar session =
     column
         (textFont
             ++ textBox
-            ++ [ height fill ]
+            ++ [ height (px (session.size.height - 54)) ]
         )
         [ row [ height fill ] [ nav session ]
         , footer session
@@ -482,7 +483,7 @@ fullPage mainFunc pageModel session =
                     ++ textFont
                     ++ [ paddingXY 10 10
                        , width fill
-                       , height (px (session.size.height - 50))
+                       , height (px (session.size.height - 54))
                        , scrollbars
                        ]
                 )

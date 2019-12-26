@@ -2,7 +2,15 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object exposing (Game(..), Player(..), Preferences(..), UserStatus(..))
+module Sonder.Object exposing (..)
+
+
+type CPLoss
+    = CPLoss
+
+
+type CRReport
+    = CRReport
 
 
 type Game

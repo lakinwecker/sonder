@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.Object.Game exposing (blackPlayer, id, lichessId, moves, movesBlur, movesEmt, movesMasterdbMatches, sourcePgn, timeControl, whitePlayer)
+module Sonder.Object.Game exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -32,15 +32,15 @@ lichessId =
 
 
 {-| -}
-whitePlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe decodesTo) Sonder.Object.Game
+whitePlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet decodesTo Sonder.Object.Game
 whitePlayer object_ =
-    Object.selectionForCompositeField "whitePlayer" [] object_ (identity >> Decode.nullable)
+    Object.selectionForCompositeField "whitePlayer" [] object_ identity
 
 
 {-| -}
-blackPlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet (Maybe decodesTo) Sonder.Object.Game
+blackPlayer : SelectionSet decodesTo Sonder.Object.Player -> SelectionSet decodesTo Sonder.Object.Game
 blackPlayer object_ =
-    Object.selectionForCompositeField "blackPlayer" [] object_ (identity >> Decode.nullable)
+    Object.selectionForCompositeField "blackPlayer" [] object_ identity
 
 
 {-| -}

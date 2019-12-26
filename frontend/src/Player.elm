@@ -26,12 +26,7 @@ import Http
 import Auth
 import Sonder.Interface
 import Router
-
-
-type alias Player =
-    { username : String
-    , totalGames : Int
-    }
+import Data exposing (..)
 
 
 type alias Response =
@@ -50,24 +45,7 @@ type alias Model =
 
 query : String -> SelectionSet Response RootQuery
 query username =
-    Query.player { username = username } playerInfoSelection
-
-
-playerInfoSelection : SelectionSet Player Sonder.Object.Player
-playerInfoSelection =
-    SelectionSet.map2 Player
-        Player.username
-        Player.totalGames
-
-
-usernameFromRoute : Router.Route -> Maybe String
-usernameFromRoute route =
-    case route of
-        Router.Player username ->
-            Just username
-
-        _ ->
-            Nothing
+    Query.player { username = username } playerCompleteSelection
 
 
 type alias InitArgs =
@@ -121,7 +99,7 @@ viewLoaded pageModel session maybePlayer =
         (S.content ++ S.fillXY ++ [ padding 20 ])
         (case maybePlayer of
             Nothing ->
-                none
+                text "Nothing"
 
             Just player ->
                 el

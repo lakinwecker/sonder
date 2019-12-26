@@ -76,12 +76,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='game',
             name='black_player',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='games_as_black', to='analysis.Player'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='games_as_black', to='analysis.Player'),
         ),
         migrations.AddField(
             model_name='game',
             name='white_player',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='games_as_white', to='analysis.Player'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='games_as_white', to='analysis.Player'),
         ),
         migrations.CreateModel(
             name='GameAnalysis',

@@ -9,7 +9,7 @@ from django.http import (
 )
 from graphene_django.views import GraphQLView
 
-from authlib.django.client import OAuth
+from authlib.integrations.django_client import OAuth
 from .models import OAuth2Token, UserPreferences
 from .schema import UserLoginResult
 

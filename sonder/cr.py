@@ -2,7 +2,8 @@ from collections import defaultdict
 from datetime import datetime
 from functools import partial
 from operator import eq, lt
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
+from .pyutils import DefaultDictInt
 from typing import List, Tuple, DefaultDict, Optional
 
 from tqdm import tqdm
@@ -89,14 +90,16 @@ def import_cr_database(database, analysis_source, stockfish_version):
 
         def process_game(game_id, completed):
             completed = completed == "1"
-            game, _ = Game.objects.get_or_create(lichess_id=game_id.strip())
+            game = Game(lichess_id=game_id.strip())
             players = players_by_lichess_game_id.get(game_id)
-            if players:
-                if not players['w'] or not players['b']:
-                    raise AssertionError("Missing players")
-                game.white_player = players['w']
-                game.black_player = players['b']
-                game.save()
+            if not players:
+                print(f"Missing players for game: {game_id}")
+                return
+            if not players['w'] or not players['b']:
+                raise AssertionError("Missing players")
+            game.white_player = players['w']
+            game.black_player = players['b']
+            game.save()
             game_analysis_completed[game.lichess_id] = completed
         process_csv("Loading Games", f"{base_dir}/game.csv", process_game)
         click.secho("✓ Games Loaded", fg='green')
@@ -186,16 +189,15 @@ def import_cr_database(database, analysis_source, stockfish_version):
 
 # TODO: Make this configurable via the config file.
 _cp_loss_intervals = [0, 10, 25, 50, 100, 200, 500]
-_cp_loss_names = ["=0"] + [f">{cp_incr}" for cp_incr in _cp_loss_intervals]
+cp_loss_names = ["=0"] + [f">{cp_incr}" for cp_incr in _cp_loss_intervals]
 _cp_loss_ops = [partial(eq,0)] + [partial(lt, cp_incr) for cp_incr in _cp_loss_intervals]
 
 
 
 def get_analysed_game_pgns_from_db(gameids):
     working_set = {}
-    for gameid in gameids:
-        if GameAnalysis.objects.filter(game__lichess_id=gameid).exists():
-            working_set[gameid] = GameAnalysis.objects.get(game__lichess_id=gameid).analysis
+    for analysis in GameAnalysis.objects.filter(game__lichess_id__in=gameids).select_related('game'):
+        working_set[analysis.game.lichess_id] = analysis.analysis
             #TODO: ensure all games are fully analysed here, ^ this only ensures analysis started
     return working_set
 
@@ -276,8 +278,7 @@ class Move:
 class PgnSpyResult():
     sample_size: int = 0
     sample_total_cpl: int = 0
-    gt0: int = 0
-    gt10: int = 0
+
     t1_total: int = 0
     t1_count: int = 0
     t2_total: int = 0
@@ -288,14 +289,12 @@ class PgnSpyResult():
     min_rating: Optional[int] = None
     max_rating: Optional[int] = None
     game_list: List[str] = field(default_factory=list)
-    cp_loss_count: DefaultDict[str, int] = field(default_factory=lambda: defaultdict(int))
+    cp_loss_count: DefaultDictInt = field(default_factory=lambda: DefaultDictInt())
     cp_loss_total: int = 0
 
     def add(self, other):
         self.sample_size += other.sample_size
         self.sample_total_cpl += other.sample_total_cpl
-        self.gt0 += other.gt0
-        self.gt10 += other.gt10
         self.t1_total += other.t1_total
         self.t1_count += other.t1_count
         self.t2_total += other.t2_total
@@ -305,7 +304,7 @@ class PgnSpyResult():
         self.with_rating(other.min_rating)
         self.with_rating(other.max_rating)
         self.game_list += other.game_list
-        for k in _cp_loss_names:
+        for k in cp_loss_names:
             self.cp_loss_count[k] += other.cp_loss_count[k]
         self.cp_loss_total += other.cp_loss_total
 
@@ -324,6 +323,12 @@ class PgnSpyResult():
         if self.t3_total == 0:
             return 0
         return -wilson_interval(self.t3_count, self.t3_total)[0]
+
+    def asdict(self):
+        return asdict(self)
+
+    def cp_loss_count_list(self):
+        return [ {"title": k, "count": self.cp_loss_count[k]} for k in cp_loss_names ]
 
 CR_CONFIG = """
 {
@@ -426,7 +431,7 @@ def a1_game(gid, config, moves, color, player):
 
         cpl = min(max(m.pv1_eval - m.played_eval, 0), config['max_cpl'])
         r.cp_loss_total += 1
-        for cp_name, cp_op in zip(_cp_loss_names, _cp_loss_ops):
+        for cp_name, cp_op in zip(cp_loss_names, _cp_loss_ops):
             if cp_op(cpl):
                 r.cp_loss_count[cp_name] += 1
 
@@ -436,10 +441,6 @@ def a1_game(gid, config, moves, color, player):
 
         r.sample_size += 1
         r.sample_total_cpl += cpl
-        if cpl > 0:
-            r.gt0 += 1
-        if cpl > 10:
-            r.gt10 += 1
 
     return r
 
@@ -455,7 +456,7 @@ def t_output(fout, result):
         fout.write(f'ACPL: {result.acpl:.1f} ({result.sample_size})\n')
     total = result.cp_loss_total
     if total > 0:
-        for cp_loss_name in _cp_loss_names:
+        for cp_loss_name in cp_loss_names:
             loss_count = result.cp_loss_count[cp_loss_name]
             stats_str = generate_stats_string(loss_count, total)
             fout.write(f'  {cp_loss_name} CP loss: {stats_str}\n')

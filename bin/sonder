@@ -138,6 +138,17 @@ def cr_game_cps_debug(gameids):
             move = (move // 2) + 1
             print(f"{color},{move},{s[0]},{s[1]},{s[2]},{s[3]},{s[4]}")
 
+#-------------------------------------------------------------------------------
+# Jobs commands
+#-------------------------------------------------------------------------------
+@cli.group()
+def jobs():
+    pass
+
+@jobs.command(name='update_all_games')
+def jobs_update_all_games():
+    from sonder.analysis.jobs import update_all_games_reports
+    update_all_games_reports(progress=True)
 
 if __name__ == '__main__':
     cli()

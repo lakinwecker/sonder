@@ -1,8 +1,7 @@
 (A) Add a way to generate a CR report for a given player +ui +django
-(A) Add paging to the list of players +ui +django
 (A) Output of html reports similar to CR txt +CR
-(B) Get elm-debug formatter working. 
 (B) /analysis/acquire to dole out game to analyze +api +fishnet
+(B) Get elm-debug formatter working. 
 (B) Graph / Exploratory data +CR
 (B) Integrate rq to process most of these background jobs
 (B) Patch fishnet to be useful for this context +CR +api +fishnet
@@ -39,3 +38,4 @@ x 2019-08-04 Script to download PGN + metadata of games lichess +simple +lila
 x 2019-08-04 The import PGN script should work on scripts with multiple games +CR
 x 2019-08-14 Add a list of players with analysis with paging? +ui +django
 x 2019-08-14 Add a player view with their CR Reports +ui +django
+x 2019-09-01 Add paging to the list of players +ui +django

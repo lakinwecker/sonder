@@ -39,14 +39,12 @@ class Game(models.Model):
     lichess_id = models.CharField(max_length=32, unique=True)
     white_player = models.ForeignKey(
         Player,
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='games_as_white',
     )
     black_player = models.ForeignKey(
         Player,
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='games_as_black',
     )
     time_control = models.CharField(max_length=8, default='')
@@ -132,6 +130,7 @@ class IrwinReport(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
+
 class IrwinReportRequiredGame(models.Model):
     irwin_report = models.ForeignKey(IrwinReport, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, null=True, on_delete=models.SET_NULL)
@@ -172,6 +171,11 @@ class IrwinReportRequiredGame(models.Model):
         return None
 
 
+class Criteria(models.Model):
+    num_games = models.PositiveIntegerField()
+    tags = models.ManyToManyField(Tag)
+
+
 class CRReport(models.Model):
     player = models.ForeignKey(
         Player,
@@ -179,9 +183,42 @@ class CRReport(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=255, default="")
+
+    criteria = models.ForeignKey(Criteria, blank=True, null=True, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
     requester = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    game_ids = JSONField()
+    sample_size = models.PositiveIntegerField(default=0)
+    sample_total_cpl = models.PositiveIntegerField(default=0)
+
+    t1_total = models.PositiveIntegerField(default=0)
+    t1_count = models.PositiveIntegerField(default=0)
+    t2_total = models.PositiveIntegerField(default=0)
+    t2_count = models.PositiveIntegerField(default=0)
+    t3_total = models.PositiveIntegerField(default=0)
+    t3_count = models.PositiveIntegerField(default=0)
+
+    min_rating = models.PositiveIntegerField(blank=True, null=True, default=None)
+    max_rating = models.PositiveIntegerField(blank=True, null=True, default=None)
+
+    game_list = JSONField(default=list)
+    cp_loss_count = JSONField(default=list)
+    cp_loss_total = models.PositiveIntegerField(default=0)
 
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+
+
+    @classmethod
+    def from_cr_report(cls, player_report):
+        copy_attrs = [
+            'sample_size', 'sample_total_cpl',
+            't1_total', 't1_count', 't2_total', 't2_count',
+            't3_total', 't3_count', 'min_rating', 'max_rating',
+            'game_list', 'cp_loss_total',
+        ]
+        update_dict = {}
+        for attr in copy_attrs:
+            update_dict[attr] = getattr(player_report, attr)
+
+        update_dict['cp_loss_count'] = player_report.cp_loss_count_list()
+        return cls(**update_dict)

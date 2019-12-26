@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Sonder.InputObject exposing (placeholder)
+module Sonder.InputObject exposing (..)
 
 
 placeholder : String
