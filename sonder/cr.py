@@ -289,7 +289,7 @@ class PgnSpyResult():
     min_rating: Optional[int] = None
     max_rating: Optional[int] = None
     game_list: List[str] = field(default_factory=list)
-    cp_loss_count: DefaultDictInt = field(default_factory=lambda: DefaultDictInt())
+    cp_loss_count: DefaultDictInt = field(default_factory=DefaultDictInt)
     cp_loss_total: int = 0
 
     def add(self, other):

@@ -18,7 +18,7 @@ from .. import cr
 FishnetRequest = {
     "title": "FishnetRequest",
     "type" : "object",
-    "required": ["fishnet", "engine"],
+    "required": ["fishnet", "stockfish"],
     "properties" : {
         "fishnet" : {
             "type" : "object",
@@ -29,7 +29,7 @@ FishnetRequest = {
                 "apikey": {"type": "string"}
             }
         },
-        "engine" : {
+        "stockfish" : {
             "type" : "object",
             "required": ["name", "options"],
             "properties": {
@@ -161,14 +161,15 @@ class Query(ObjectType, LoginRequired):
         filterset_class=PlayerFilter
     )
 
-    def resolve_player(self, info, **kwargs):
+    @classmethod
+    def resolve_player(cls, info, **kwargs):
         if info.context.user.is_anonymous:
             return None
-        id = kwargs.get('id')
+        _id = kwargs.get('id')
         username = kwargs.get('username')
 
-        if id is not None:
-            return models.Player.objects.get(pk=id)
+        if _id is not None:
+            return models.Player.objects.get(pk=_id)
 
         if username is not None:
             return models.Player.objects.get(username=username)
