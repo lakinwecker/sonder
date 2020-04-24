@@ -13,7 +13,7 @@
   "scripts": {
     "elm": "elm",
     "build": "elm make src/Main.elm --output ../static/sonder.js",
-    "watch": "watch 'npm run build' src",
+    "watch": "watch 'yarn run build' src",
     "graphqlschema": "cd ../; pipenv run python manage.py graphql_schema --schema sonder.schema.schema --out frontend/schema.json; cd frontend; elm-graphql --introspection-file ./schema.json --base Sonder --output src"
   }
 }
