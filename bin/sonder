@@ -24,38 +24,44 @@ from sonder.analysis.models import GameAnalysis
 from sonder.analysis.jobs import update_all_games_reports
 
 bin_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-sys.path.insert(0, os.path.join(bin_dir, '..'))
+sys.path.insert(0, os.path.join(bin_dir, ".."))
 
 
 @click.group()
 def cli():
     load_dotenv()
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sonder.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sonder.settings")
     django.setup()
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # PGN Commands
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 @cli.group()
 def pgn():
     pass
 
-@pgn.command(name='import')
-@click.option('--pgn', required=True, help='The pgn of game(s) to be added to database')
-@click.option('--encoding', default='ISO-8859-1', required=False, help='Encoding of the file')
+
+@pgn.command(name="import")
+@click.option("--pgn", required=True, help="The pgn of game(s) to be added to database")
+@click.option(
+    "--encoding", default="ISO-8859-1", required=False, help="Encoding of the file"
+)
 def pgn_import(pgn, encoding):
     import_pgn_file_to_db(pgn, encoding=encoding)
 
-@pgn.command(name='to_uci')
-@click.option('--pgn', required=True, help='pgn to be converted to UCI moves')
-def pgn_to_uci(pgn):
-    print(' '.join(utils.pgn_to_uci(open(pgn, 'r').read())))
 
-@pgn.command(name='export')
-@click.option('--player', help='Player we are interested in')
-@click.option('--time_control', help='TimeControl to export')
+@pgn.command(name="to_uci")
+@click.option("--pgn", required=True, help="pgn to be converted to UCI moves")
+def pgn_to_uci(pgn):
+    print(" ".join(utils.pgn_to_uci(open(pgn, "r").read())))
+
+
+@pgn.command(name="export")
+@click.option("--player", help="Player we are interested in")
+@click.option("--time_control", help="TimeControl to export")
 def pgn_export(player=None, time_control=None):
-    qs = Game.objects.exclude(source_pgn='')
+    qs = Game.objects.exclude(source_pgn="")
     if player:
         try:
             username = Player.normalize_username(player)
@@ -69,60 +75,82 @@ def pgn_export(player=None, time_control=None):
     for game in qs:
         print(f"""{game.source_pgn}\n\n\n""")
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # League Commands
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 @cli.group()
 def league():
     pass
 
-@league.command(name='download-games')
-@click.option('--league', required=True, help='team4545, lonewolf')
-@click.option('--season', help='number for team4545, number with or without u1800 for lonewolf')
+
+@league.command(name="download-games")
+@click.option("--league", required=True, help="team4545, lonewolf")
+@click.option(
+    "--season", help="number for team4545, number with or without u1800 for lonewolf"
+)
 def league_download_games(league, season=None):
     download_new_games(league, season)
 
-@league.command(name='get-season-ids')
-@click.option('--league', required=True, help='team4545, lonewolf')
+
+@league.command(name="get-season-ids")
+@click.option("--league", required=True, help="team4545, lonewolf")
 def league_get_season_ids(league):
     print(get_season_ids_for_league(league))
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Lichess Commands
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 @cli.group()
 def lichess():
     pass
 
-@lichess.command(name='download-games')
-@click.option('--gameids', required=True, help='List of Lichess game IDs', multiple='true')
+
+@lichess.command(name="download-games")
+@click.option(
+    "--gameids", required=True, help="List of Lichess game IDs", multiple="true"
+)
 def lichess_download_games(gameids):
     for pgn in get_game_pgns(gameids):
         import_pgn_to_db(pgn, encoding="utf-8")
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # Lichess Commands
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 @cli.group()
 def cr():
     pass
 
-@cr.command(name='import')
-@click.option('--database', required=True, help='The sqlite database to import')
-@click.option('--analysis-source', required=True, help='Name of the analysis source')
-@click.option('--stockfish-version', required=True, help='The stockfish version of the analysis')
+
+@cr.command(name="import")
+@click.option("--database", required=True, help="The sqlite database to import")
+@click.option("--analysis-source", required=True, help="Name of the analysis source")
+@click.option(
+    "--stockfish-version", required=True, help="The stockfish version of the analysis"
+)
 def cr_import(database, analysis_source, stockfish_version):
     import_cr_database(database, analysis_source, stockfish_version)
 
-@cr.command(name='report')
-@click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')
-@click.option('--name', required=True, help='The name of the report')
+
+@cr.command(name="report")
+@click.option(
+    "--gameids",
+    required=True,
+    help="The games to include in the report as a whitespace separated string of lichess game IDs",
+)
+@click.option("--name", required=True, help="The name of the report")
 def cr_txt_report(gameids, name):
     cr_text_report(gameids.split(), name)
 
-@cr.command(name='game-cps-debug')
-@click.option('--gameids', required=True, help='The games to include in the report as a whitespace separated string of lichess game IDs')
+
+@cr.command(name="game-cps-debug")
+@click.option(
+    "--gameids",
+    required=True,
+    help="The games to include in the report as a whitespace separated string of lichess game IDs",
+)
 def cr_game_cps_debug(gameids):
     """Simple tool to debug game cps. Compare this output to the output of the following commands run in a cr database:
 
@@ -135,23 +163,25 @@ def cr_game_cps_debug(gameids):
         ga = GameAnalysis.objects.get(game__lichess_id=game_id)
         colors = itertools.cycle(["w", "b"])
         for color, move, a in zip(colors, range(1024), ga.analysis):
-            s = [pov['score']['cp'] for pov in a['pvs']]
+            s = [pov["score"]["cp"] for pov in a["pvs"]]
             if move % 2 == 1:
                 move = move - 1
             move = (move // 2) + 1
             print(f"{color},{move},{s[0]},{s[1]},{s[2]},{s[3]},{s[4]}")
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # Jobs commands
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 @cli.group()
 def jobs():
     pass
 
-@jobs.command(name='update_all_games')
+
+@jobs.command(name="update_all_games")
 def jobs_update_all_games():
     update_all_games_reports(progress=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
