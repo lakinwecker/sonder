@@ -7,12 +7,16 @@ from django.contrib.auth.models import User
 
 from sonder.utils import pgn_to_uci
 
+
 def create_api_token():
     return get_random_string(length=12)
 
+
 class AnalysisSource(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    secret_token = models.CharField(max_length=12, unique=True, default=create_api_token)
+    secret_token = models.CharField(
+        max_length=12, unique=True, default=create_api_token
+    )
     use_for_irwin = models.BooleanField(default=False)
     use_for_mods = models.BooleanField(default=False)
     enabled = models.BooleanField(default=False)
@@ -22,6 +26,7 @@ class AnalysisSource(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -39,23 +44,20 @@ class Player(models.Model):
     def __str__(self):
         return self.username
 
+
 class Game(models.Model):
     lichess_id = models.CharField(max_length=32, unique=True)
     white_player = models.ForeignKey(
-        Player,
-        on_delete=models.CASCADE,
-        related_name='games_as_white',
+        Player, on_delete=models.CASCADE, related_name="games_as_white",
     )
     black_player = models.ForeignKey(
-        Player,
-        on_delete=models.CASCADE,
-        related_name='games_as_black',
+        Player, on_delete=models.CASCADE, related_name="games_as_black",
     )
-    time_control = models.CharField(max_length=8, default='')
+    time_control = models.CharField(max_length=8, default="")
 
     # Storing the source PGN in case we want more information from
     # it later.
-    source_pgn = models.TextField(default='')
+    source_pgn = models.TextField(default="")
 
     # list of uci moves
     moves = JSONField(null=True)
@@ -71,12 +73,14 @@ class Game(models.Model):
         self.source_pgn = pgn
         self.moves = pgn_to_uci(self.source_pgn)
 
+
 class GameTag(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
-colors = (('w', 'White'), ('b', 'Black'))
+colors = (("w", "White"), ("b", "Black"))
+
 
 class GameAnalysis(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -114,17 +118,11 @@ class GameAnalysis(models.Model):
     analysis = JSONField()
 
     class Meta:
-        index_together = [
-            ['game', 'source']
-        ]
+        index_together = [["game", "source"]]
 
 
 class IrwinReport(models.Model):
-    player = models.ForeignKey(
-        Player,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
+    player = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL,)
     completed = models.BooleanField(default=False)
     origin = models.CharField(max_length=32)
 
@@ -142,10 +140,7 @@ class IrwinReportRequiredGame(models.Model):
 
     def job(self):
         return {
-            "work": {
-                "type": "analysis",
-                "id": f"irwin-{self.id}",
-            },
+            "work": {"type": "analysis", "id": f"irwin-{self.id}",},
             "game_id": f"{self.game.lichess_id}",
             "position": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             "variant": "standard",
@@ -156,13 +151,11 @@ class IrwinReportRequiredGame(models.Model):
 
     @classmethod
     def assign_game(cls, source):
-        games = cls.objects.select_for_update().filter(
-                owner__isnull=True,
-                completed=False
-            ).order_by(
-                '-irwin_report__precedence',
-                'irwin_report__date_modified'
-            )
+        games = (
+            cls.objects.select_for_update()
+            .filter(owner__isnull=True, completed=False)
+            .order_by("-irwin_report__precedence", "irwin_report__date_modified")
+        )
         with transaction.atomic():
             try:
                 game = games[0]
@@ -180,14 +173,12 @@ class Criteria(models.Model):
 
 
 class CRReport(models.Model):
-    player = models.ForeignKey(
-        Player,
-        null=True,
-        on_delete=models.CASCADE,
-    )
+    player = models.ForeignKey(Player, null=True, on_delete=models.CASCADE,)
     name = models.CharField(max_length=255, default="")
 
-    criteria = models.ForeignKey(Criteria, blank=True, null=True, on_delete=models.CASCADE)
+    criteria = models.ForeignKey(
+        Criteria, blank=True, null=True, on_delete=models.CASCADE
+    )
     completed = models.BooleanField(default=False)
     requester = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     sample_size = models.PositiveIntegerField(default=0)
@@ -210,28 +201,38 @@ class CRReport(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
-
     @classmethod
     def from_cr_report(cls, player_report):
         copy_attrs = [
-            'sample_size', 'sample_total_cpl',
-            't1_total', 't1_count', 't2_total', 't2_count',
-            't3_total', 't3_count', 'min_rating', 'max_rating',
-            'game_list', 'cp_loss_total',
+            "sample_size",
+            "sample_total_cpl",
+            "t1_total",
+            "t1_count",
+            "t2_total",
+            "t2_count",
+            "t3_total",
+            "t3_count",
+            "min_rating",
+            "max_rating",
+            "game_list",
+            "cp_loss_total",
         ]
         update_dict = {}
         for attr in copy_attrs:
             update_dict[attr] = getattr(player_report, attr)
 
-        update_dict['cp_loss_count'] = player_report.cp_loss_count_list()
+        update_dict["cp_loss_count"] = player_report.cp_loss_count_list()
         return cls(**update_dict)
+
 
 class GamePlayerConflict(AssertionError):
     pass
 
+
 def import_pgn_file_to_db(pgn_file, encoding="ISO-8859-1"):
     pgn_in = open(pgn_file, encoding=encoding)
     return import_pgn_to_db(pgn_in)
+
 
 def import_pgn_to_db(pgn_in):
     game = chess.pgn.read_game(pgn_in)
@@ -239,17 +240,16 @@ def import_pgn_to_db(pgn_in):
         insert_game_into_db(game)
         game = chess.pgn.read_game(pgn_in)
 
+
 def insert_game_into_db(game):
-    white_username = Player.normalize_username(game.headers['White'])
-    black_username = Player.normalize_username(game.headers['Black'])
+    white_username = Player.normalize_username(game.headers["White"])
+    black_username = Player.normalize_username(game.headers["Black"])
     w, _ = Player.objects.get_or_create(username=white_username)
     b, _ = Player.objects.get_or_create(username=black_username)
     exporter = chess.pgn.StringExporter(headers=True, variations=False, comments=False)
     pgn_text = game.accept(exporter)
-    lichess_id = game.headers['Site'][-8:]
-    g, _ = Game.objects.get_or_create(
-        lichess_id=lichess_id,
-    )
+    lichess_id = game.headers["Site"][-8:]
+    g, _ = Game.objects.get_or_create(lichess_id=lichess_id,)
     if g.white_player and g.white_player != w:
         raise GamePlayerConflict(
             f"PGN expects game to have {w} as white, but db has {g.white_player} as white."
@@ -260,6 +260,6 @@ def insert_game_into_db(game):
         )
     g.white_player = w
     g.black_player = b
-    g.time_control = game.headers['TimeControl']
+    g.time_control = game.headers["TimeControl"]
     g.set_pgn(pgn_text)
     g.save()
