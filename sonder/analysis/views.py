@@ -1,4 +1,3 @@
-
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -9,17 +8,16 @@ from .schema import (
     FishnetRequest,
     FishnetJob,
 )
-from .models import (
-    AnalysisSource,
-    IrwinReportRequiredGame
-)
+from .models import AnalysisSource, IrwinReportRequiredGame
+
 
 @csrf_exempt
 @require_POST
 @jsonapi.api(FishnetRequest, FishnetJob)
 def acquire(request, fishnet_request):
     analysis_source = get_object_or_404(
-        AnalysisSource, secret_token=fishnet_request["fishnet"]["apikey"])
+        AnalysisSource, secret_token=fishnet_request["fishnet"]["apikey"]
+    )
     if analysis_source.use_for_irwin:
         game = IrwinReportRequiredGame.assign_game(analysis_source)
         if game:

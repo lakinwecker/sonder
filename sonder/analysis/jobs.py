@@ -4,6 +4,7 @@ Some background jobs.
 from .models import Player
 from tqdm import tqdm
 
+
 def update_all_games_reports(progress=False):
     qs = Player.objects.all()
     if progress:

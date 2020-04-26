@@ -10,37 +10,37 @@ from django.http import (
 from graphene_django.views import GraphQLView
 
 from authlib.integrations.django_client import OAuth
-from .models import OAuth2Token, UserPreferences
-from .schema import UserLoginResult
+from sonder.frontend.models import OAuth2Token, UserPreferences
+from sonder.frontend.schema import UserLoginResult
 
-from .. import jsonapi
+from sonder import jsonapi
+
 
 def fetch_token(name, request):
-    item = OAuth2Token.objects.get(
-        name=name,
-        user=request.user
-    )
+    item = OAuth2Token.objects.get(name=name, user=request.user)
     return item.to_token()
 
 
 oauth = OAuth(fetch_token=fetch_token)
-oauth.register('lichess')
+oauth.register("lichess")
 
 
-def index(request, **kwargs):
+def index(request):
     return render(request, "sonder/frontend/index.html")
 
+
 def login(request):
-    redirect_uri = request.build_absolute_uri(reverse('login.authorize'))
+    redirect_uri = request.build_absolute_uri(reverse("login.authorize"))
     response = oauth.lichess.authorize_redirect(request, redirect_uri)
-    return JsonResponse({'url': response.url})
+    return JsonResponse({"url": response.url})
+
 
 @transaction.atomic
 def authorize(request):
     token = oauth.lichess.authorize_access_token(request)
-    response = oauth.lichess.get('/api/account', token=token)
+    response = oauth.lichess.get("/api/account", token=token)
     result = response.json()
-    username = result['username']
+    username = result["username"]
 
     try:
         user = User.objects.get(username=username)
@@ -55,7 +55,7 @@ def authorize(request):
     db_token.update_from_token(user, token)
     db_token.save()
 
-    user.backend = 'django.contrib.auth.backends.ModelBackend'
+    user.backend = "django.contrib.auth.backends.ModelBackend"
     authLogin(request, user)
 
     return HttpResponseRedirect(reverse("dashboard"))
@@ -64,20 +64,17 @@ def authorize(request):
 @jsonapi.api(None, UserLoginResult)
 def auth_status(request, _none):
     if request.user.is_authenticated:
-        user_preferences, _ = UserPreferences.objects.get_or_create(
-            user=request.user
-        )
+        user_preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
         return {
             "type": "authorized",
-            "username": request.user.email, # TODO: consider changing this to an actual username?
-            "preferences": {
-                "background": user_preferences.background
-            }
+            "username": request.user.email,  # TODO: consider changing this to an actual username?
+            "preferences": {"background": user_preferences.background},
         }
 
     return {
         "type": "anonymous",
     }
+
 
 class PrivateGraphQLView(GraphQLView):
     pass
