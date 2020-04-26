@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -25,6 +25,11 @@ def acquire(request, fishnet_request):
         if game:
             return game.job()
 
-    return HttpResponse('foo')
+    return HttpResponse(status=204)
 
+
+@csrf_exempt
+def status(request):
+    # TODO: not sure if sonder needs to support this or not, probably not
+    raise Http404
 

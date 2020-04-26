@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 prospector = "*"
+black = "==19.10b0"
+jedi = "*"
 
 [packages]
 django = "==2.2.*"

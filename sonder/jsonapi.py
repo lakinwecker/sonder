@@ -7,7 +7,12 @@ from functools import wraps
 from jsonschema import validate, ValidationError
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import (
+    JsonResponse,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseServerError,
+)
 from django.utils.log import log_response
 
 def api(in_schema=None, out_schema=None):
@@ -49,6 +54,8 @@ def api(in_schema=None, out_schema=None):
                     log("Bad Request", response)
                     return response
             response = func(request, json_request, *args, **kwargs)
+            if isinstance(response, HttpResponse):
+                return response
 
             if out_schema:
                 try:
