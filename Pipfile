@@ -7,6 +7,7 @@ verify_ssl = true
 prospector = "*"
 black = "==19.10b0"
 jedi = "*"
+safety = "*"
 
 [packages]
 django = "==2.2.*"
