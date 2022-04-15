@@ -33,13 +33,7 @@ FishnetRequest = {
             "required": ["name", "options"],
             "properties": {
                 "name": {"type": "string"},
-                "options": {
-                    "type": "object",
-                    "properties": {
-                        "hash": {"type": "string"},  # TODO: string?!
-                        "threads": {"type": "string"},  # TODO: string?!
-                    },
-                },
+                "options": {"type": "object" },
             },
         },
     },
@@ -59,8 +53,62 @@ FishnetJob = {
         "variant": {"type": "string"},
         "moves": {"type": "string"},
         "nodes": {"type": "number", "minimum": 0},
+        "multipv": {"type": "number", "minimum": 0},
         "skipPositions": {"type": "array", "items": {"type": "number"},},
     },
+}
+
+FishnetAnalysis = {
+    "title": "FishnetAnalysis",
+    "type": "object",
+    "required": ["fishnet", "stockfish", "analysis"],
+    "properties": {
+        "fishnet": {
+            "type": "object",
+            "required": ["version", "python", "apikey"],
+            "properties": {
+                "version": {"type": "string"},
+                "python": {"type": "string"},
+                "apikey": {"type": "string"},
+            },
+        },
+        "stockfish": {
+            "type": "object",
+            "required": ["name", "options"],
+            "properties": {
+                "name": {"type": "string"},
+                "options": {"type": "object"},
+            }
+        },
+        "analysis": {
+            "type": "array",
+            "items": {
+                "anyOf": [{
+                    "type": "null",
+                }, {
+                    "type": "object",
+                    "properties": {
+                        "skipped": {"type": "boolean"},
+                        "bsetmove": {"type": "string"},
+                        "pv": {"type": "string"},
+                        "seldepth": {"type": "number"},
+                        "tbhits": {"type": "number"},
+                        "depth": {"type": "number"},
+                        "score": {
+                            "type": "object",
+                            "properties": {
+                                "cp": {"type": "number"},
+                                "mate": {"type": "number"},
+                             }
+                        },
+                        "time": {"type": "number"},
+                        "nodes": {"type": "number"},
+                        "nps": {"type": "number"},
+                    }
+                    }]
+            }
+        }
+    }
 }
 
 

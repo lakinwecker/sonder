@@ -1,30 +1,45 @@
 #!/usr/bin/env python
-import click
-import django
 import inspect
-import os
-import os.path
-import sys
 
 import itertools
+import os
+import os.path
+import random
+import sys
+
+import click
+import django
 
 from dotenv import load_dotenv
 
-from sonder.analysis.models import import_pgn_file_to_db
-from sonder import utils
+load_dotenv()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sonder.settings")
+django.setup()
+
+# pylint: disable=locally-disabled, wrong-import-position
 from django.db.models import Q
+
+from django.contrib.auth.models import User
+
+from sonder import utils
 from sonder.analysis.models import Player, Game
 from sonder.league.utils import download_new_games
 from sonder.league.utils import get_season_ids_for_league
 from sonder.league.utils import get_game_pgns
-from sonder.utils import import_pgn_to_db
 from sonder.cr import import_cr_database
 from sonder.cr import cr_text_report
-from sonder.analysis.models import GameAnalysis
+from sonder.analysis.models import (
+    IrwinReport,
+    IrwinReportOrigin,
+    IrwinReportRequiredGame,
+    GameAnalysis,
+    import_pgn_file_to_db,
+    import_pgn_to_db,
+)
 from sonder.analysis.jobs import update_all_games_reports
 
-bin_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-sys.path.insert(0, os.path.join(bin_dir, ".."))
+BIN_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, os.path.join(BIN_DIR, ".."))
 
 
 @click.group()
@@ -113,7 +128,7 @@ def lichess():
 )
 def lichess_download_games(gameids):
     for pgn in get_game_pgns(gameids):
-        import_pgn_to_db(pgn, encoding="utf-8")
+        import_pgn_to_db(pgn)
 
 
 # -------------------------------------------------------------------------------
@@ -181,6 +196,50 @@ def jobs():
 @jobs.command(name="update_all_games")
 def jobs_update_all_games():
     update_all_games_reports(progress=True)
+
+
+# -------------------------------------------------------------------------------
+# Development related commands
+# -------------------------------------------------------------------------------
+@cli.group()
+def development():
+    pass
+
+
+@development.command()
+@click.option("--source", required=True, help="The source of the requests")
+@click.option("--player", required=True, help="The target of the requests")
+@click.option("--number", default=20, help="The number of games to require")
+def create_test_irwin_jobs(source, player, number):
+    try:
+        player = Player.objects.get(username=player)
+    except Player.DoesNotExist:
+        click.secho(f"Unable to find player: {player}")
+
+    try:
+        moderator = User.objects.get(username=source)
+    except User.DoesNotExist:
+        click.secho(f"Unable to find source: {source}")
+
+    precedence = random.randrange(1, 10000)
+
+    report, _ = IrwinReport.objects.get_or_create(
+        player=player, completed=False, precedence=precedence,
+    )
+    IrwinReportOrigin.objects.get_or_create(
+        report=report,
+        source=IrwinReportOrigin.SOURCE_CHOICES.MODERATOR,
+        moderator=moderator,
+        precedence=precedence,
+    )
+    games = Game.objects.filter(Q(white_player=player) | Q(black_player=player))[:number]
+    for g in games:
+        IrwinReportRequiredGame.objects.get_or_create(
+            irwin_report=report,
+            game=g,
+            completed=False,
+            owner=None
+        )
 
 
 if __name__ == "__main__":

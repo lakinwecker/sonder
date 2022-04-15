@@ -1,10 +1,12 @@
-(A) Add a way to generate a CR report for a given player +ui +django
-(A) Output of html reports similar to CR txt +CR
+(A) Fix irwin queue to ignore games without moves +api +fishnet
+(A) Patch fishnet to be useful for this context +CR +api +fishnet
+(A) Fix variant error for "From Position" on import" +import
 (B) /analysis/acquire to dole out game to analyze +api +fishnet
+(B) Add a way to generate a CR report for a given player +ui +django
 (B) Get elm-debug formatter working. 
 (B) Graph / Exploratory data +CR
 (B) Integrate rq to process most of these background jobs
-(B) Patch fishnet to be useful for this context +CR +api +fishnet
+(B) Output of html reports similar to CR txt +CR
 (C) Get irwin network deployed as a javascript network if possible +irwin +interface
 (C) Model something to replace "analysed_game_activation" (dunno what it does) +db +irwin
 (C) Model something to replace "deepPlayerQueue" (dunno what it does) +db +irwin

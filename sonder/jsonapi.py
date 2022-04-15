@@ -7,15 +7,10 @@ from functools import wraps
 from jsonschema import validate, ValidationError
 
 from django.conf import settings
-from django.http import (
-    JsonResponse,
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseServerError,
-)
+from django.http import (JsonResponse, HttpResponse, HttpResponseBadRequest)
 from django.utils.log import log_response
 
-def api(in_schema=None, out_schema=None):
+def api(in_schema=None, out_schema=None, status=200):
     """
     Decorator to make a view only accept and return a particular json schema. Usage::
         @json_api(JobRequest, JobResponse)
@@ -42,6 +37,7 @@ def api(in_schema=None, out_schema=None):
                     json_request = json.loads(request.body)
                 except json.JSONDecodeError:
                     response = HttpResponseBadRequest("Unable to decode json body")
+                    # TODO: these logs aren't printing in dev.
                     log("Bad Request", response)
                     return response
 
@@ -51,6 +47,7 @@ def api(in_schema=None, out_schema=None):
                     response = HttpResponseBadRequest(json.dumps(
                         {'error': str(e.message)}
                     ))
+                    # TODO: these logs aren't printing in dev.
                     log("Bad Request", response)
                     return response
             response = func(request, json_request, *args, **kwargs)
@@ -63,13 +60,14 @@ def api(in_schema=None, out_schema=None):
                 except ValidationError as e:
                     if settings.DEBUG:
                         raise
-                    response = HttpResponseServerError("Invalid response type")
+                    response = HttpResponseBadRequest(json.dumps(
+                        {'error': str(e.message)}
+                    ))
+                    # TODO: these logs aren't printing in dev.
                     log("Server Error", response)
                     return response
-                return JsonResponse(response)
-            else:
-                return response
+                return JsonResponse(response, status=status)
+            return response
 
         return inner
     return decorator
-

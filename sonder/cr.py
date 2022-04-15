@@ -90,7 +90,10 @@ def import_cr_database(database, analysis_source, stockfish_version):
 
         def process_game(game_id, completed):
             completed = completed == "1"
-            game = Game(lichess_id=game_id.strip())
+            try:
+                game = Game.objects.get(lichess_id=game_id.strip())
+            except Game.DoesNotExist:
+                game = Game(lichess_id=game_id.strip())
             players = players_by_lichess_game_id.get(game_id)
             if not players:
                 print(f"Missing players for game: {game_id}")
@@ -151,7 +154,7 @@ def import_cr_database(database, analysis_source, stockfish_version):
             sonder_analysis = [empty_move(i+1) for i in range(last_move_number)]
             for move_number, cr_move_analysis in moves:
                 move_analysis = sonder_analysis[move_number-1]
-                move_analysis["cr"].update({
+                move_analysis.update({
                     "played_eval": cr_move_analysis['played_eval'],
                     "played_rank": cr_move_analysis['played_rank'],
                     "nodes": cr_move_analysis["nodes"],

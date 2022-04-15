@@ -7,7 +7,7 @@ import io
 import time
 
 from tqdm import tqdm
-from ..utils import import_pgn_to_db
+from ..analysis.models import import_pgn_to_db
 from ..analysis.models import Game, Tag, GameTag
 
 
@@ -65,16 +65,19 @@ def download_new_games(league, _season=None):
 
     league_tag, _ = Tag.objects.get_or_create(name=league)
     games_to_download = []
+    games_to_tag = defaultdict(list)
     for season, _round in tqdm(
         list(product(seasons, rounds)), f"Downloading pairing games", leave=False
     ):
         season_tag, _ = Tag.objects.get_or_create(name=f"Season-{season}")
         for _, _, _, game_id in get_season_game_ids(league, season, rounds=[_round]):
-            game, created = Game.objects.get_or_create(lichess_id=game_id)
-            GameTag.objects.get_or_create(game=game, tag=league_tag)
-            GameTag.objects.get_or_create(game=game, tag=season_tag)
-            if created or game.source_pgn.strip():
-                continue
+            games_to_tag[game_id].extend([season_tag, league_tag])
+            try:
+                g = Game.objects.get(lichess_id=game_id)
+                if g.source_pgn.strip():
+                    continue
+            except Game.DoesNotExist:
+                pass
             games_to_download.append(game_id)
     click.secho(f"✓ Found {len(games_to_download)} new games", fg="green")
 
@@ -90,7 +93,10 @@ def download_new_games(league, _season=None):
     skipped_games = defaultdict(int)
     for pgn in tqdm(pgns, "Processing PGNs", leave=False):
         try:
-            import_pgn_to_db(io.StringIO(pgn))
+            games = import_pgn_to_db(io.StringIO(pgn))
+            for game in games:
+                for tag in games_to_tag[game.lichess_id]:
+                    GameTag.objects.get_or_create(game=game, tag=tag)
         except ValueError as e:
             if str(e).startswith("unsupported variant:"):
                 skipped_games["unsupported variant"] += 1
